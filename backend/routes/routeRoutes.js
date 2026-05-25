@@ -4,11 +4,15 @@ const routeController = require("../controllers/routeController");
 const auth = require("../middleware/authMiddleware");
 
 router.post("/", auth, routeController.createRoute);
+router.post("/system", auth, routeController.createQuickRoute);
+
 router.get("/", routeController.getRoutes);
-router.get("/:routeId", routeController.getRouteById);
-router.delete("/:routeId", auth, routeController.deleteRoute);
+
+// Put fixed routes BEFORE :routeId routes
+router.get("/:routeId/queue", routeController.getQueue);
 router.post("/:routeId/join", auth, routeController.joinRoute);
 router.post("/:routeId/leave", auth, routeController.leaveRoute);
-router.get("/:routeId/queue", routeController.getQueue);
+router.delete("/:routeId", auth, routeController.deleteRoute);
+router.get("/:routeId", routeController.getRouteById);
 
 module.exports = router;

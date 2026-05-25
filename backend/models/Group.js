@@ -7,6 +7,10 @@ const groupSchema = new mongoose.Schema(
       ref: "Route",
     },
 
+    slotId: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
+
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,

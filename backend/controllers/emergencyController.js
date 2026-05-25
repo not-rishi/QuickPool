@@ -1,5 +1,5 @@
 const PanicReport = require("../models/PanicReport");
-const { sendOTP } = require("../services/emailService");
+const sendOTP = require("../services/emailService");
 
 exports.panic = async (req, res, next) => {
   try {

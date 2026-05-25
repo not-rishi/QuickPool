@@ -1,19 +1,45 @@
 const OTP = require("../models/OTP");
 const User = require("../models/User");
 const generateOTP = require("../utils/generateOTP");
-const { sendOTP } = require("../services/emailService");
+const sendOTP = require("../services/emailService");
 const generateToken = require("../utils/generateToken");
 
 exports.sendOtp = async (req, res, next) => {
   try {
-    const { usn, email } = req.body;
-    if (!usn || !email)
-      return res.status(400).json({ message: "usn and email required" });
+    const { usn } = req.body;
+
+    if (!usn) {
+      return res.status(400).json({
+        message: "USN required",
+      });
+    }
+
+    // Find user using USN
+    const user = await User.findOne({ usn });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
     const otp = generateOTP(6);
+
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-    await OTP.create({ usn, email, otp, expiresAt, verified: false });
-    await sendOTP(email, otp);
-    res.json({ message: "OTP sent" });
+
+    await OTP.create({
+      usn,
+      email: user.email,
+      otp,
+      expiresAt,
+      verified: false,
+    });
+
+    await sendOTP(user.email, otp);
+
+    res.json({
+      message: "OTP sent to registered email",
+    });
   } catch (err) {
     next(err);
   }

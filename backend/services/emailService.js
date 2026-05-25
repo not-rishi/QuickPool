@@ -4,6 +4,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendOTP = async (email, otpHtml) => {
   try {
+    console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
+
     const response = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: email,
@@ -11,12 +13,11 @@ const sendOTP = async (email, otpHtml) => {
       html: otpHtml,
     });
 
-    console.log("Email sent:", response);
+    console.log(response);
 
     return response;
   } catch (error) {
-    console.error("Resend Error:", error);
-
+    console.error(error);
     throw error;
   }
 };

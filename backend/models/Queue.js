@@ -6,6 +6,10 @@ const queueSchema = new mongoose.Schema({
     ref: "Route",
   },
 
+  slotId: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
+
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
