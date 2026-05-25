@@ -1,13 +1,14 @@
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useEffect, useRef } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-import { BrandColors } from '@/constants/brand';
-import { useAuth } from '@/context/auth-context';
+import { BrandColors } from "@/constants/brand";
+import { useAuth } from "@/context/auth-context";
 
 const SPLASH_DURATION_MS = 2200;
-const LOGO_SOURCE = require('@/assets/images/icon.png');
+const LOGO_SOURCE = require("@/assets/images/icon.png");
+const GIF_SOURCE = require("@/assets/images/icon.gif");
 
 export default function LoadingScreen() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -19,9 +20,9 @@ export default function LoadingScreen() {
     const timer = setTimeout(() => {
       hasNavigated.current = true;
       if (isAuthenticated) {
-        router.replace('/(tabs)');
+        router.replace("/(tabs)");
       } else {
-        router.replace('/login');
+        router.replace("/login");
       }
     }, SPLASH_DURATION_MS);
 
@@ -30,9 +31,9 @@ export default function LoadingScreen() {
 
   return (
     <View style={styles.container}>
-      <Image source={LOGO_SOURCE} style={styles.logo} contentFit="contain" />
-      <Text style={styles.title}>quickpool</Text>
-      <Text style={styles.subtitle}>Shared rides for students</Text>
+      <Image source={GIF_SOURCE} style={styles.logo} contentFit="contain" />
+      <Text style={styles.title}>QuickPool</Text>
+      <Text style={styles.subtitle}>Ride Sharing Made Simple Enough</Text>
     </View>
   );
 }
@@ -40,9 +41,9 @@ export default function LoadingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: BrandColors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "black",
     gap: 12,
     paddingHorizontal: 32,
   },
@@ -53,14 +54,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 40,
-    fontWeight: '800',
+    fontWeight: "800",
     color: BrandColors.primary,
     letterSpacing: 1,
-    textTransform: 'lowercase',
+    // textTransform: "uppercase",
   },
   subtitle: {
     fontSize: 14,
     color: BrandColors.muted,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

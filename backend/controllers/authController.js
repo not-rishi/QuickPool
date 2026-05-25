@@ -4,6 +4,12 @@ const generateOTP = require("../utils/generateOTP");
 const sendOTP = require("../services/emailService");
 const generateToken = require("../utils/generateToken");
 
+const DEV_CONFIG = {
+  magicUsn: "SMARTRISHI", // Any designated testing USN
+  magicOtp: "111111", // The easy bypass code
+  mockEmail: "rishicool@bmsce.ac.in", // Fallback mock email for testing
+};
+
 exports.sendOtp = async (req, res, next) => {
   try {
     const { usn } = req.body;
@@ -11,6 +17,12 @@ exports.sendOtp = async (req, res, next) => {
     if (!usn) {
       return res.status(400).json({
         message: "USN required",
+      });
+    }
+
+    if (usn === DEV_CONFIG.magicUsn) {
+      return res.json({
+        message: "OTP sent to registered email (Dev Bypass Enabled)",
       });
     }
 
@@ -50,6 +62,19 @@ exports.verifyOtp = async (req, res, next) => {
     const { usn, otp } = req.body;
     if (!usn || !otp)
       return res.status(400).json({ message: "usn and otp required" });
+
+    if (usn === DEV_CONFIG.magicUsn && otp === DEV_CONFIG.magicOtp) {
+      let user = await User.findOne({ usn });
+      if (!user) {
+        user = await User.create({
+          usn: DEV_CONFIG.magicUsn,
+          email: DEV_CONFIG.mockEmail,
+          name: "Dev Sandbox",
+        });
+      }
+      const token = generateToken({ id: user._id });
+      return res.json({ token, user });
+    }
     const record = await OTP.findOne({ usn, otp }).sort({ createdAt: -1 });
     if (!record) return res.status(400).json({ message: "Invalid OTP" });
     if (record.expiresAt < new Date())

@@ -1,59 +1,39 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { BrandColors } from '@/constants/brand';
+import { View, ScrollView } from "react-native";
+import type { ReactNode } from "react";
+import { DarkTheme, globalStyles } from "@/constants/theme"; // Import the theme
 
 type ScreenContainerProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   scroll?: boolean;
   centered?: boolean;
 };
 
-export function ScreenContainer({ children, scroll = false, centered = false }: ScreenContainerProps) {
+export function ScreenContainer({
+  children,
+  scroll,
+  centered,
+}: ScreenContainerProps) {
   const content = (
-    <View style={[styles.inner, centered && styles.centered]}>{children}</View>
+    <View
+      style={[
+        globalStyles.container, // This applies our #09090B background
+        centered && { justifyContent: "center", alignItems: "center" },
+      ]}
+    >
+      {children}
+    </View>
   );
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        {scroll ? (
-          <ScrollView
-            contentContainerStyle={[styles.scrollContent, centered && styles.centered]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
-            {children}
-          </ScrollView>
-        ) : (
-          content
-        )}
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+  if (scroll) {
+    return (
+      <ScrollView
+        style={globalStyles.container} // Apply here too for the scroll view itself
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        {content}
+      </ScrollView>
+    );
+  }
+
+  return content;
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: BrandColors.white,
-  },
-  flex: {
-    flex: 1,
-  },
-  inner: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

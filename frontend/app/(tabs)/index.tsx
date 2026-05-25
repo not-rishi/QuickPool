@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { BlurView } from "expo-blur";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  ImageBackground,
   RefreshControl,
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { RouteCard } from '@/components/routes/route-card';
-import { BrandColors } from '@/constants/brand';
-import { useAuth } from '@/context/auth-context';
-import { ApiError } from '@/services/api';
-import { fetchRoutes } from '@/services/routes';
-import type { TravelRoute } from '@/types/route';
+import { RouteCard } from "@/components/routes/route-card";
+import { API_ENDPOINTS } from "@/config/api";
+import { useAuth } from "@/context/auth-context";
+import type { TravelRoute } from "@/types/route";
 
 export default function HomeScreen() {
   const { token, user } = useAuth();
@@ -27,10 +27,24 @@ export default function HomeScreen() {
     if (!token) return;
     setError(null);
     try {
-      const data = await fetchRoutes(token);
+      const response = await fetch(API_ENDPOINTS.routes.base, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || "Failed to load routes");
+      }
+
+      const data = await response.json();
       setRoutes(data);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load routes');
+    } catch (err: any) {
+      setError(err.message || "Failed to connect to the server.");
     }
   }, [token]);
 
@@ -49,114 +63,144 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Welcome back</Text>
-          <Text style={styles.name}>{user?.name ?? user?.usn ?? 'Student'}</Text>
-        </View>
-        <View style={styles.scorePill}>
-          <Text style={styles.scoreLabel}>Score</Text>
-          <Text style={styles.scoreValue}>{user?.reputationScore ?? 100}</Text>
-        </View>
-      </View>
+    <View style={styles.container}>
+      {/* Background Image synced with Auth UI hierarchy */}
+      <ImageBackground
+        source={require("@/assets/images/background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
 
-      <Text style={styles.sectionTitle}>Available routes</Text>
-      <Text style={styles.sectionSubtitle}>
-        Join a route to get matched with students heading the same way.
-      </Text>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        {/* Glassmorphic Header */}
+        <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
+          <View>
+            <Text style={styles.greeting}>Welcome back</Text>
+            <Text style={styles.name}>
+              {user?.name ?? user?.usn ?? "Student"}
+            </Text>
+          </View>
+          <View style={styles.scorePill}>
+            <Text style={styles.scoreLabel}>Score</Text>
+            <Text style={styles.scoreValue}>{user?.reputationScore ?? 100}</Text>
+          </View>
+        </BlurView>
 
-      {loading ? (
-        <ActivityIndicator style={styles.loader} color={BrandColors.primary} />
-      ) : error ? (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyTitle}>Could not load routes</Text>
-          <Text style={styles.emptyText}>{error}</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Available routes</Text>
+          <Text style={styles.sectionSubtitle}>
+            Join a route to get matched with students heading the same way.
+          </Text>
         </View>
-      ) : (
-        <FlatList
-          data={routes}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BrandColors.primary} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyBox}>
-              <Text style={styles.emptyTitle}>No routes yet</Text>
-              <Text style={styles.emptyText}>
-                Routes created by students and the system will appear here.
-              </Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <View style={styles.cardWrap}>
-              <RouteCard route={item} />
-            </View>
-          )}
-        />
-      )}
-    </SafeAreaView>
+
+        {loading ? (
+          <ActivityIndicator style={styles.loader} color="#6366f1" size="large" />
+        ) : error ? (
+          <BlurView intensity={30} tint="dark" style={styles.glassBox}>
+            <Text style={styles.emptyTitle}>Could not load routes</Text>
+            <Text style={styles.emptyText}>{error}</Text>
+          </BlurView>
+        ) : (
+          <FlatList
+            data={routes}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.list}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#6366f1"
+                colors={["#6366f1"]}
+              />
+            }
+            ListEmptyComponent={
+              <BlurView intensity={30} tint="dark" style={styles.glassBox}>
+                <Text style={styles.emptyTitle}>No routes yet</Text>
+                <Text style={styles.emptyText}>
+                  Routes created by students and the system will appear here.
+                </Text>
+              </BlurView>
+            }
+            renderItem={({ item }) => (
+              <View style={styles.cardWrap}>
+                <RouteCard route={item} />
+              </View>
+            )}
+          />
+        )}
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#050505",
+  },
   safe: {
     flex: 1,
-    backgroundColor: BrandColors.surface,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  headerGlass: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 16,
-    backgroundColor: BrandColors.white,
+    paddingTop: 12,
+    paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: "rgba(18, 18, 18, 0.4)",
   },
   greeting: {
     fontSize: 13,
-    color: BrandColors.muted,
-    fontWeight: '500',
+    color: "#a1a1aa",
+    fontWeight: "500",
   },
   name: {
     fontSize: 22,
-    fontWeight: '800',
-    color: BrandColors.text,
+    fontWeight: "800",
+    color: "#ffffff",
     marginTop: 2,
+    letterSpacing: -0.5,
   },
   scorePill: {
-    alignItems: 'center',
-    backgroundColor: BrandColors.accent,
+    alignItems: "center",
+    backgroundColor: "rgba(99, 102, 241, 0.15)",
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "rgba(99, 102, 241, 0.3)",
   },
   scoreLabel: {
     fontSize: 11,
-    color: BrandColors.muted,
-    fontWeight: '600',
+    color: "#a1a1aa",
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   scoreValue: {
     fontSize: 20,
-    fontWeight: '800',
-    color: BrandColors.primary,
+    fontWeight: "800",
+    color: "#6366f1", // Match auth accent color
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: BrandColors.text,
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#ffffff",
+    letterSpacing: -0.5,
   },
   sectionSubtitle: {
-    fontSize: 13,
-    color: BrandColors.muted,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    color: "#a1a1aa",
+    marginTop: 4,
+    lineHeight: 20,
   },
   list: {
     paddingHorizontal: 20,
@@ -164,29 +208,32 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardWrap: {
-    marginBottom: 12,
+    marginBottom: 4,
   },
   loader: {
-    marginTop: 40,
+    marginTop: 60,
   },
-  emptyBox: {
+  glassBox: {
     marginHorizontal: 20,
-    marginTop: 24,
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: BrandColors.white,
+    marginTop: 12,
+    padding: 24,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: "rgba(18, 18, 18, 0.4)",
+    overflow: "hidden",
+    alignItems: "center",
     gap: 8,
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: BrandColors.text,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#ffffff",
   },
   emptyText: {
     fontSize: 14,
-    color: BrandColors.muted,
+    color: "#a1a1aa",
     lineHeight: 20,
+    textAlign: "center",
   },
 });
