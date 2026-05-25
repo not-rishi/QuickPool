@@ -131,6 +131,11 @@ exports.joinRoute = async (req, res, next) => {
       userId: req.userId,
       femaleOnly: req.body.femaleOnly || false,
     });
+
+    // Try to trigger auto grouping immediately when someone joins
+    const { formGroupsForRoute } = require("../services/matchingService");
+    await formGroupsForRoute(routeId, slotId);
+
     res.json(q);
   } catch (err) {
     next(err);

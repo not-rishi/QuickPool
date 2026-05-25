@@ -1,5 +1,6 @@
 const PanicReport = require("../models/PanicReport");
-const sendOTP = require("../services/emailService");
+const { sendPanicEmail } = require("../services/emailService");
+const User = require("../models/User");
 
 exports.panic = async (req, res, next) => {
   try {
@@ -10,8 +11,12 @@ exports.panic = async (req, res, next) => {
       groupId,
       message,
     });
-    // Optionally notify admin via email - using EMAIL_FROM as sender and CLIENT_URL as admin contact
-    // For now, just save and respond
+
+    const user = await User.findById(req.userId);
+    if (user) {
+      await sendPanicEmail(groupId, message, user.email);
+    }
+
     res.status(201).json(report);
   } catch (err) {
     next(err);

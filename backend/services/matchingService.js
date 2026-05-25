@@ -1,31 +1,145 @@
 const Queue = require("../models/Queue");
 const Group = require("../models/Group");
+const Swap = require("../models/Swap");
+const User = require("../models/User");
+const Route = require("../models/Route");
 
-async function formGroupsForRoute(routeId, slotId, batchSize = 3) {
-  // Simple FIFO grouping within a slot: pull earliest queued users and create groups of batchSize
+async function runMatchingLogic(routeId, slotId, isFinalizing = false) {
+  const route = await Route.findById(routeId);
+  if (!route) return;
+  const batchSize = route.batchSize || 3;
+
+  // Find all queued users for this route and slot, populated with gender
   const queued = await Queue.find({ routeId, slotId })
+    .populate("userId")
     .sort({ joinedAt: 1 })
-    .limit(batchSize)
     .exec();
-  if (queued.length < batchSize) return null;
-  const members = queued.map((q) => q.userId);
-  const group = await Group.create({
-    routeId,
-    slotId,
-    members,
-    status: "FORMED",
-    rideTime: new Date(),
-  });
-  // remove queued entries
-  await Queue.deleteMany({ _id: { $in: queued.map((q) => q._id) } });
-  return group;
+  if (queued.length === 0) return;
+
+  // Load swaps for this route
+  const swaps = await Swap.find({ routeId }).exec();
+
+  let available = [...queued];
+  const formedGroups = [];
+
+  while (
+    available.length >= batchSize ||
+    (isFinalizing && available.length > 0)
+  ) {
+    let currentGroup = [available[0]];
+    available.splice(0, 1);
+
+    let isFemaleGroup = currentGroup[0].femaleOnly;
+    let requiredGender = isFemaleGroup ? "Female" : null;
+    if (
+      currentGroup[0].userId.gender === "Female" &&
+      currentGroup[0].femaleOnly
+    ) {
+      requiredGender = "Female";
+    }
+
+    for (
+      let i = 0;
+      i < available.length && currentGroup.length < batchSize;
+      i++
+    ) {
+      let candidate = available[i];
+      let canJoin = true;
+
+      if (candidate.femaleOnly && candidate.userId.gender === "Female") {
+        if (
+          requiredGender === null &&
+          currentGroup.some((m) => m.userId.gender !== "Female")
+        ) {
+          canJoin = false;
+        } else if (requiredGender === null) {
+          requiredGender = "Female";
+          isFemaleGroup = true;
+        }
+      }
+
+      if (requiredGender === "Female" && candidate.userId.gender !== "Female") {
+        canJoin = false;
+      }
+
+      if (canJoin && isFemaleGroup && candidate.userId.gender !== "Female")
+        canJoin = false;
+
+      if (canJoin) {
+        for (let m of currentGroup) {
+          const hasSwap = swaps.some(
+            (s) =>
+              (s.userId.toString() === candidate.userId._id.toString() &&
+                s.avoidUserId.toString() === m.userId._id.toString()) ||
+              (s.userId.toString() === m.userId._id.toString() &&
+                s.avoidUserId.toString() === candidate.userId._id.toString()),
+          );
+          if (hasSwap) {
+            canJoin = false;
+            break;
+          }
+        }
+      }
+
+      if (canJoin) {
+        currentGroup.push(candidate);
+        available.splice(i, 1);
+        i--;
+      }
+    }
+
+    if (
+      currentGroup.length === batchSize ||
+      (isFinalizing && currentGroup.length > 0)
+    ) {
+      const members = currentGroup.map((q) => q.userId._id);
+      const rideTime =
+        route.timeSlots && route.timeSlots.length > 0
+          ? route.timeSlots.find((s) => s._id.toString() === slotId.toString())
+              ?.startTime || new Date()
+          : new Date();
+
+      await Group.create({
+        routeId,
+        slotId,
+        members,
+        status: "FORMED",
+        rideTime,
+      });
+
+      await Queue.deleteMany({ _id: { $in: currentGroup.map((c) => c._id) } });
+      formedGroups.push(currentGroup);
+    } else {
+      available = [...currentGroup.slice(1), ...available];
+    }
+  }
+}
+
+async function formGroupsForRoute(routeId, slotId) {
+  await runMatchingLogic(routeId, slotId, false);
 }
 
 async function generateQuickRoutes() {
-  // Placeholder: implement quick route regeneration logic here.
-  // Currently a no-op that logs for daily scheduler.
   console.log("generateQuickRoutes: called");
-  return;
 }
 
-module.exports = { formGroupsForRoute, generateQuickRoutes };
+async function finalizeGroups() {
+  console.log("Finalizing groups...");
+  const now = new Date();
+  const routes = await Route.find({ active: true });
+  for (const route of routes) {
+    if (route.timeSlots) {
+      for (const slot of route.timeSlots) {
+        const startTime = new Date(slot.startTime);
+        if (
+          startTime <= now &&
+          now.getTime() - startTime.getTime() < 1000 * 60 * 60 * 24
+        ) {
+          await runMatchingLogic(route._id, slot._id, true);
+        }
+      }
+    }
+  }
+}
+
+module.exports = { formGroupsForRoute, generateQuickRoutes, finalizeGroups };

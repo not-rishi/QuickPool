@@ -10,7 +10,10 @@ app.use(express.json());
 
 // Scheduler for quick routes
 const cron = require("node-cron");
-const { generateQuickRoutes } = require("./services/matchingService");
+const {
+  generateQuickRoutes,
+  finalizeGroups,
+} = require("./services/matchingService");
 
 // Connect DB
 connectDB(process.env.MONGO_URI || "mongodb://localhost:27017/quickpool");
@@ -26,12 +29,19 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(5000, "0.0.0.0", () => {
+  console.log("Server broad-listening on port 5000");
+});
 
 // Schedule daily quick route regeneration at midnight
 try {
   cron.schedule("0 0 * * *", async () => {
     await generateQuickRoutes();
+  });
+
+  // Schedule every minute: finalizes groups
+  cron.schedule("* * * * *", async () => {
+    await finalizeGroups();
   });
 } catch (e) {
   console.error("Failed to schedule cron job:", e.message);

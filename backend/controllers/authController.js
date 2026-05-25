@@ -1,7 +1,7 @@
 const OTP = require("../models/OTP");
 const User = require("../models/User");
 const generateOTP = require("../utils/generateOTP");
-const sendOTP = require("../services/emailService");
+const { sendOTP } = require("../services/emailService");
 const generateToken = require("../utils/generateToken");
 
 const DEV_CONFIG = {

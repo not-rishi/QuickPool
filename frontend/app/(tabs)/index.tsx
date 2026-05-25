@@ -1,6 +1,7 @@
+// app/home.tsx (or wherever your HomeScreen is located)
 import { BlurView } from "expo-blur";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -26,9 +27,17 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadRoutes = useCallback(async () => {
-    if (!token) return;
+  // 1. Unified function handling its own loading state (matches working HistoryScreen)
+  // We pass isBackgroundRefresh to prevent the main spinner from showing during pull-to-refresh
+  const loadRoutes = useCallback(async (isBackgroundRefresh = false) => {
+    if (!token) {
+      setLoading(false); // Failsafe to prevent lockup if token is missing
+      return;
+    }
+    
+    if (!isBackgroundRefresh) setLoading(true);
     setError(null);
+    
     try {
       const response = await fetch(API_ENDPOINTS.routes.base, {
         method: "GET",
@@ -48,36 +57,31 @@ export default function HomeScreen() {
       setRoutes(data);
     } catch (err: any) {
       setError(err.message || "Failed to connect to the server.");
+    } finally {
+      if (!isBackgroundRefresh) setLoading(false);
     }
   }, [token]);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      await loadRoutes();
-      setLoading(false);
-    })();
-  }, [loadRoutes]);
-
+  // 2. Simplified useFocusEffect
   useFocusEffect(
     useCallback(() => {
       loadRoutes();
-    }, [loadRoutes]),
+    }, [loadRoutes])
   );
 
   const handleCreateRoute = useCallback(() => {
     router.push("/create-route");
   }, []);
 
-  async function onRefresh() {
+  // 3. Independent refresh handler passing the background flag
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadRoutes();
+    await loadRoutes(true); // Pass true to skip the main ActivityIndicator
     setRefreshing(false);
-  }
+  }, [loadRoutes]);
 
   return (
     <View style={styles.container}>
-      {/* Background Image synced with Auth UI hierarchy */}
       <ImageBackground
         source={require("@/assets/images/background.png")}
         style={StyleSheet.absoluteFillObject}
@@ -86,7 +90,6 @@ export default function HomeScreen() {
       <View pointerEvents="none" style={styles.backgroundOverlay} />
 
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        {/* Glassmorphic Header */}
         <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
           <View style={styles.headerLeft}>
             <QuickPoolLogo size={42} />
@@ -126,7 +129,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {loading ? (
+        {loading && !refreshing ? (
           <ActivityIndicator
             style={styles.loader}
             color="#6366f1"
@@ -237,7 +240,7 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#6366f1", // Match auth accent color
+    color: "#6366f1",
   },
   sectionHeader: {
     paddingHorizontal: 20,

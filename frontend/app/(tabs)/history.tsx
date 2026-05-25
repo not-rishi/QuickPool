@@ -3,7 +3,8 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  ScrollView,
+  FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -26,12 +27,11 @@ export default function HistoryScreen() {
   const { token } = useAuth();
   const [history, setHistory] = useState<RideHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async () => {
     if (!token) return;
-    setLoading(true);
-    setError(null);
     try {
       const response = await fetch(API_ENDPOINTS.users.history, {
         method: "GET",
@@ -48,79 +48,102 @@ export default function HistoryScreen() {
 
       const data = (await response.json()) as RideHistory[];
       setHistory(data);
+      setError(null);
     } catch (err: any) {
       setError(err.message || "Failed to load ride history.");
-    } finally {
-      setLoading(false);
     }
   }, [token]);
 
+  // Unified life-cycle focus hook handling initial and subsequence focuses gracefully
   useFocusEffect(
     useCallback(() => {
-      loadHistory();
+      let isMounted = true;
+
+      (async () => {
+        if (isMounted) setLoading(true);
+        await loadHistory();
+        if (isMounted) setLoading(false);
+      })();
+
+      return () => {
+        isMounted = false;
+      };
     }, [loadHistory]),
   );
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.safe} edges={["top"]}>
-          <ActivityIndicator
-            style={styles.loader}
-            color="#6366f1"
-            size="large"
-          />
-        </SafeAreaView>
-      </View>
-    );
-  }
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setError(null);
+    await loadHistory();
+    setRefreshing(false);
+  }, [loadHistory]);
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
-            <View style={styles.headerRow}>
-              <QuickPoolLogo size={40} />
-              <Text style={styles.headerTitle}>Ride history</Text>
-            </View>
-            <Text style={styles.subtitle}>
-              Your past routes and group sizes.
-            </Text>
-          </BlurView>
-
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          {history.length === 0 ? (
-            <BlurView intensity={30} tint="dark" style={styles.glassBox}>
-              <Text style={styles.emptyTitle}>No rides yet</Text>
-              <Text style={styles.emptyText}>
-                Your completed trips will appear here.
-              </Text>
-            </BlurView>
-          ) : (
-            history.map((item) => (
-              <BlurView
-                key={item._id}
-                intensity={26}
-                tint="dark"
-                style={styles.card}
-              >
-                <Text style={styles.routeTitle}>
-                  {getRouteLabel(item.routeId)}
-                </Text>
-                <Text style={styles.metaText}>
-                  {item.rideDate
-                    ? new Date(item.rideDate).toLocaleString()
-                    : "Date pending"}
-                </Text>
-                <Text style={styles.metaText}>
-                  Group size: {item.groupSize ?? "-"}
+        <FlatList
+          data={history}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.content}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#6366f1"
+              colors={["#6366f1"]}
+            />
+          }
+          ListHeaderComponent={
+            <>
+              <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
+                <View style={styles.headerRow}>
+                  <QuickPoolLogo size={40} />
+                  <Text style={styles.headerTitle}>Ride history</Text>
+                </View>
+                <Text style={styles.subtitle}>
+                  Your past routes and group sizes.
                 </Text>
               </BlurView>
-            ))
+
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              
+              {/* Show loading spinner gracefully nested under header without snapping out layouts */}
+              {loading && !refreshing ? (
+                <ActivityIndicator
+                  style={styles.loader}
+                  color="#6366f1"
+                  size="large"
+                />
+              ) : null}
+            </>
+          }
+          ListEmptyComponent={
+            // Rendered only when history is empty and not loading background network frames
+            !loading ? (
+              <BlurView intensity={30} tint="dark" style={styles.glassBox}>
+                <Text style={styles.emptyTitle}>No rides yet</Text>
+                <Text style={styles.emptyText}>
+                  Your completed trips will appear here.
+                </Text>
+              </BlurView>
+            ) : null
+          }
+          renderItem={({ item }) => (
+            <BlurView intensity={26} tint="dark" style={styles.card}>
+              <Text style={styles.routeTitle}>
+                {getRouteLabel(item.routeId)}
+              </Text>
+              <Text style={styles.metaText}>
+                {item.rideDate
+                  ? new Date(item.rideDate).toLocaleString()
+                  : "Date pending"}
+              </Text>
+              <Text style={styles.metaText}>
+                Group size: {item.groupSize ?? "-"}
+              </Text>
+            </BlurView>
           )}
-        </ScrollView>
+        />
       </SafeAreaView>
     </View>
   );
@@ -145,6 +168,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
     backgroundColor: "rgba(18, 18, 18, 0.4)",
+    marginBottom: 4, // Adds separation below the header item
   },
   headerRow: {
     flexDirection: "row",
@@ -180,9 +204,9 @@ const styles = StyleSheet.create({
   error: {
     color: BrandColors.danger,
     fontSize: 12,
+    marginTop: 8,
   },
   glassBox: {
-    marginHorizontal: 8,
     padding: 24,
     borderRadius: 20,
     borderWidth: 1,
@@ -203,6 +227,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   loader: {
-    marginTop: 60,
+    marginVertical: 40,
   },
 });

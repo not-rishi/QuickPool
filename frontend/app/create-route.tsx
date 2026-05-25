@@ -1,7 +1,8 @@
-import { BlurView } from "expo-blur";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,113 +14,67 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { PrimaryButton } from "@/components/ui/primary-button";
-import { QuickPoolLogo } from "@/components/branding/quickpool-logo";
 import { API_ENDPOINTS } from "@/config/api";
-import { BrandColors } from "@/constants/brand";
 import { useAuth } from "@/context/auth-context";
-import type { RouteBatchSize } from "@/types/route";
 
-type FormErrors = {
-  start?: string;
-  destination?: string;
-  batchSize?: string;
-  startTime?: string;
-  endTime?: string;
-  submit?: string;
-};
-
-const BATCH_OPTIONS: RouteBatchSize[] = [3, 4, 6];
+const BATCH_SIZES = [3, 4, 6];
 
 export default function CreateRouteScreen() {
   const { token } = useAuth();
+  
+  // Form State
   const [start, setStart] = useState("");
   const [destination, setDestination] = useState("");
   const [description, setDescription] = useState("");
-  const [batchSize, setBatchSize] = useState<RouteBatchSize | null>(null);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [loading, setLoading] = useState(false);
+  const [batchSize, setBatchSize] = useState<number>(4);
 
-  const canSubmit = useMemo(() => {
-    return Boolean(start && destination && batchSize && startTime && endTime);
-  }, [start, destination, batchSize, startTime, endTime]);
+  // Time State
+  const [startTime, setStartTime] = useState(new Date());
+  // Default end time to 2 hours from now
+  const [endTime, setEndTime] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000));
+  
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  
+  // UI State
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const validate = () => {
-    const nextErrors: FormErrors = {};
-
-    if (!start.trim()) {
-      nextErrors.start = "Start location is required.";
-    }
-
-    if (!destination.trim()) {
-      nextErrors.destination = "Destination is required.";
-    }
-
-    if (!batchSize) {
-      nextErrors.batchSize = "Select a batch size.";
-    }
-
-    if (!startTime.trim()) {
-      nextErrors.startTime = "Start time is required.";
-    }
-
-    if (!endTime.trim()) {
-      nextErrors.endTime = "End time is required.";
-    }
-
-    const parsedStart = new Date(startTime);
-    if (startTime.trim() && Number.isNaN(parsedStart.getTime())) {
-      nextErrors.startTime =
-        "Use a valid ISO date-time (e.g. 2026-05-25T18:30:00+05:30).";
-    }
-
-    const parsedEnd = new Date(endTime);
-    if (endTime.trim() && Number.isNaN(parsedEnd.getTime())) {
-      nextErrors.endTime =
-        "Use a valid ISO date-time (e.g. 2026-05-25T20:00:00+05:30).";
-    }
-
-    if (
-      startTime.trim() &&
-      endTime.trim() &&
-      !Number.isNaN(parsedStart.getTime()) &&
-      !Number.isNaN(parsedEnd.getTime()) &&
-      parsedEnd <= parsedStart
-    ) {
-      nextErrors.endTime = "End time must be after the start time.";
-    }
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+  // Time format helper
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  const handleSubmit = async () => {
-    if (!token) {
-      setErrors({ submit: "Please log in again to create a route." });
+  const handleCreateRoute = async () => {
+    if (!start.trim() || !destination.trim()) {
+      setError("Start and destination are required.");
       return;
     }
 
-    if (!validate()) {
+    if (endTime <= startTime) {
+      setError("End time must be after the start time.");
       return;
     }
 
-    setLoading(true);
-    setErrors({});
+    setIsLoading(true);
+    setError(null);
 
     try {
+      const timeSlots = [
+        {
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+        },
+      ];
+
       const payload = {
         start: start.trim(),
         destination: destination.trim(),
-        description: description.trim() || undefined,
+        description: description.trim(),
         batchSize,
-        timeSlots: [
-          {
-            startTime: new Date(startTime).toISOString(),
-            endTime: new Date(endTime).toISOString(),
-          },
-        ],
+        routeType: "USER_ROUTE",
+        timeSlots,
+        expiresAt: endTime.toISOString(),
       };
 
       const response = await fetch(API_ENDPOINTS.routes.base, {
@@ -139,158 +94,181 @@ export default function CreateRouteScreen() {
 
       router.back();
     } catch (err: any) {
-      setErrors({ submit: err.message || "Failed to create route." });
+      setError(err.message || "An unexpected error occurred.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safe} edges={["top"]}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
-              <View style={styles.headerRow}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <Text style={styles.backText}>Cancel</Text>
+            </Pressable>
+            <Text style={styles.headerTitle}>New Route</Text>
+            <View style={{ width: 60 }} />
+          </View>
+
+          <View style={styles.form}>
+            {error && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Start Location</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Main Gate"
+                placeholderTextColor="#52525B"
+                value={start}
+                onChangeText={setStart}
+                editable={!isLoading}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Destination</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. City Center"
+                placeholderTextColor="#52525B"
+                value={destination}
+                onChangeText={setDestination}
+                editable={!isLoading}
+              />
+            </View>
+
+            {/* Time Selection Row */}
+            <View style={styles.timeRow}>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.label}>Start Time</Text>
                 <Pressable
-                  accessibilityRole="button"
-                  onPress={() => router.back()}
+                  style={styles.timeButton}
+                  onPress={() => setShowStartPicker(true)}
+                  disabled={isLoading}
                 >
-                  <Text style={styles.backText}>Back</Text>
+                  <Text style={styles.timeText}>{formatTime(startTime)}</Text>
                 </Pressable>
-                <QuickPoolLogo size={36} />
-              </View>
-              <View>
-                <Text style={styles.title}>Create a route</Text>
-                <Text style={styles.subtitle}>
-                  Share where you are heading and when you want to start.
-                </Text>
-              </View>
-            </BlurView>
-
-            <BlurView intensity={26} tint="dark" style={styles.formCard}>
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>Start location</Text>
-                <TextInput
-                  placeholder="Main Gate"
-                  placeholderTextColor="#6B7280"
-                  value={start}
-                  onChangeText={setStart}
-                  style={styles.input}
-                />
-                {errors.start ? (
-                  <Text style={styles.error}>{errors.start}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>Destination</Text>
-                <TextInput
-                  placeholder="MG Road"
-                  placeholderTextColor="#6B7280"
-                  value={destination}
-                  onChangeText={setDestination}
-                  style={styles.input}
-                />
-                {errors.destination ? (
-                  <Text style={styles.error}>{errors.destination}</Text>
-                ) : null}
+                {showStartPicker && (
+                  <DateTimePicker
+                    value={startTime}
+                    mode="time"
+                    display="spinner"
+                    minimumDate={new Date()} // Can't start in the past
+                    maximumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)} // Max 24 hours from now
+                    onChange={(event, date) => {
+                      setShowStartPicker(Platform.OS === "ios"); // iOS picker stays inline usually, Android closes
+                      if (event.type === "set" && date) {
+                        setShowStartPicker(false);
+                        setStartTime(date);
+                        // Auto-adjust end time if it's now behind the start time
+                        if (endTime <= date) {
+                          setEndTime(new Date(date.getTime() + 60 * 60 * 1000));
+                        }
+                      } else if (event.type === "dismissed") {
+                        setShowStartPicker(false);
+                      }
+                    }}
+                  />
+                )}
               </View>
 
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>Description</Text>
-                <TextInput
-                  placeholder="Optional notes to help others"
-                  placeholderTextColor="#6B7280"
-                  value={description}
-                  onChangeText={setDescription}
-                  style={[styles.input, styles.textArea]}
-                  multiline
-                />
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.label}>End Time (Expiry)</Text>
+                <Pressable
+                  style={styles.timeButton}
+                  onPress={() => setShowEndPicker(true)}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.timeText}>{formatTime(endTime)}</Text>
+                </Pressable>
+                {showEndPicker && (
+                  <DateTimePicker
+                    value={endTime}
+                    mode="time"
+                    display="spinner"
+                    minimumDate={startTime} // Can't end before it starts
+                    maximumDate={new Date(startTime.getTime() + 24 * 60 * 60 * 1000)} // Max 24 hours after start
+                    onChange={(event, date) => {
+                      setShowEndPicker(Platform.OS === "ios");
+                      if (event.type === "set" && date) {
+                        setShowEndPicker(false);
+                        setEndTime(date);
+                      } else if (event.type === "dismissed") {
+                        setShowEndPicker(false);
+                      }
+                    }}
+                  />
+                )}
               </View>
+            </View>
 
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>Batch size</Text>
-                <View style={styles.batchRow}>
-                  {BATCH_OPTIONS.map((size) => (
-                    <Pressable
-                      key={size}
-                      accessibilityRole="button"
-                      onPress={() => setBatchSize(size)}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Number of Shares (Batch Size)</Text>
+              <View style={styles.batchContainer}>
+                {BATCH_SIZES.map((size) => (
+                  <Pressable
+                    key={size}
+                    disabled={isLoading}
+                    onPress={() => setBatchSize(size)}
+                    style={[
+                      styles.batchButton,
+                      batchSize === size && styles.batchButtonActive,
+                    ]}
+                  >
+                    <Text
                       style={[
-                        styles.batchChip,
-                        batchSize === size && styles.batchChipActive,
+                        styles.batchText,
+                        batchSize === size && styles.batchTextActive,
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.batchChipText,
-                          batchSize === size && styles.batchChipTextActive,
-                        ]}
-                      >
-                        {size} people
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-                {errors.batchSize ? (
-                  <Text style={styles.error}>{errors.batchSize}</Text>
-                ) : null}
+                      {size}
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
+            </View>
 
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>Start time</Text>
-                <TextInput
-                  placeholder="2026-05-25T18:30:00+05:30"
-                  placeholderTextColor="#6B7280"
-                  value={startTime}
-                  onChangeText={setStartTime}
-                  style={styles.input}
-                  autoCapitalize="none"
-                />
-                <Text style={styles.hint}>Use ISO 8601 date-time format.</Text>
-                {errors.startTime ? (
-                  <Text style={styles.error}>{errors.startTime}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.fieldBlock}>
-                <Text style={styles.label}>End time</Text>
-                <TextInput
-                  placeholder="2026-05-25T20:00:00+05:30"
-                  placeholderTextColor="#6B7280"
-                  value={endTime}
-                  onChangeText={setEndTime}
-                  style={styles.input}
-                  autoCapitalize="none"
-                />
-                {errors.endTime ? (
-                  <Text style={styles.error}>{errors.endTime}</Text>
-                ) : null}
-              </View>
-
-              {errors.submit ? (
-                <Text style={styles.error}>{errors.submit}</Text>
-              ) : null}
-
-              <PrimaryButton
-                label="Create route"
-                loading={loading}
-                disabled={!canSubmit || loading}
-                onPress={handleSubmit}
-                style={styles.submitButton}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Description (Optional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Any extra details for the ride?"
+                placeholderTextColor="#52525B"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                editable={!isLoading}
               />
-            </BlurView>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <Pressable
+            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+            onPress={handleCreateRoute}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.submitText}>Create Route</Text>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -299,113 +277,129 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#050505",
   },
-  safe: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
   scrollContent: {
-    padding: 20,
-    gap: 18,
+    flexGrow: 1,
   },
-  headerGlass: {
-    borderRadius: 20,
-    padding: 20,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.4)",
-  },
-  headerRow: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  backButton: {
+    paddingVertical: 8,
+    width: 60,
   },
   backText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: BrandColors.accent,
-    textTransform: "uppercase",
-    letterSpacing: 1.4,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#ffffff",
-    letterSpacing: -0.4,
-  },
-  subtitle: {
-    fontSize: 14,
     color: "#a1a1aa",
-    lineHeight: 20,
+    fontSize: 15,
   },
-  formCard: {
-    borderRadius: 24,
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  form: {
     padding: 20,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.45)",
+    gap: 24,
   },
-  fieldBlock: {
+  errorBox: {
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.3)",
+    padding: 12,
+    borderRadius: 8,
+  },
+  errorText: {
+    color: "#ef4444",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  inputGroup: {
     gap: 8,
   },
   label: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#E5E7EB",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#E2E8F0",
   },
   input: {
-    borderRadius: 14,
+    backgroundColor: "rgba(18, 18, 18, 0.6)",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
-    backgroundColor: "rgba(9, 9, 11, 0.7)",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
+    borderRadius: 12,
+    padding: 16,
     color: "#ffffff",
+    fontSize: 16,
   },
-  textArea: {
-    minHeight: 96,
-    textAlignVertical: "top",
-  },
-  hint: {
-    fontSize: 12,
-    color: "#9CA3AF",
-  },
-  error: {
-    fontSize: 12,
-    color: BrandColors.danger,
-  },
-  batchRow: {
+  timeRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
+    gap: 16,
   },
-  batchChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
+  timeButton: {
+    backgroundColor: "rgba(18, 18, 18, 0.6)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    backgroundColor: "rgba(17, 24, 39, 0.6)",
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
   },
-  batchChipActive: {
-    borderColor: "rgba(10, 126, 164, 0.6)",
-    backgroundColor: "rgba(10, 126, 164, 0.2)",
-  },
-  batchChipText: {
-    fontSize: 13,
-    color: "#E5E7EB",
+  timeText: {
+    color: "#ffffff",
+    fontSize: 16,
     fontWeight: "600",
   },
-  batchChipTextActive: {
-    color: "#E6F4FE",
+  textArea: {
+    height: 100,
+  },
+  batchContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  batchButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(18, 18, 18, 0.6)",
+    alignItems: "center",
+  },
+  batchButtonActive: {
+    backgroundColor: "rgba(99, 102, 241, 0.15)",
+    borderColor: "#6366f1",
+  },
+  batchText: {
+    color: "#a1a1aa",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  batchTextActive: {
+    color: "#6366f1",
+    fontWeight: "800",
+  },
+  footer: {
+    padding: 20,
+    paddingBottom: Platform.OS === "ios" ? 10 : 20,
+    borderTopWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   submitButton: {
-    marginTop: 8,
+    backgroundColor: "#6366f1",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
