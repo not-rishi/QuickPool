@@ -49,22 +49,20 @@ const routeSchema = new mongoose.Schema(
   },
 );
 
-routeSchema.pre("save", function (next) {
+routeSchema.pre("save", function () {
   if (this.routeType === "USER_ROUTE") {
     if (!this.timeSlots || this.timeSlots.length !== 1) {
-      return next(new Error("User route can only have one slot"));
+      throw new Error("User route can only have one slot");
     }
 
     if (!this.expiresAt) {
-      return next(new Error("User route requires expiry"));
+      throw new Error("User route requires expiry");
     }
   }
 
   if (this.routeType === "QUICK_ROUTE") {
     this.expiresAt = null;
   }
-
-  next();
 });
 
 module.exports = mongoose.model("Route", routeSchema);

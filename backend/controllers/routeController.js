@@ -1,5 +1,6 @@
 const Route = require("../models/Route");
 const Queue = require("../models/Queue");
+const mongoose = require("mongoose");
 
 exports.createRoute = async (req, res, next) => {
   try {
@@ -28,6 +29,13 @@ exports.createQuickRoute = async (req, res, next) => {
       }));
     }
 
+    console.log(
+      "createQuickRoute called, typeof next:",
+      typeof next,
+      "next=",
+      next,
+    );
+
     const route = await Route.create({
       ...body,
       routeType: "QUICK_ROUTE",
@@ -55,11 +63,18 @@ exports.getRoutes = async (req, res, next) => {
 
 exports.getRouteById = async (req, res, next) => {
   try {
-    const route = await Route.findById(req.params.routeId).populate(
-      "createdBy",
-      "name usn",
-    );
-    if (!route) return res.status(404).json({ message: "Route not found" });
+    const { routeId } = req.params;
+
+    console.log("routeId:", routeId);
+
+    if (!mongoose.Types.ObjectId.isValid(routeId)) {
+      return res.status(400).json({
+        message: "Invalid route ID",
+      });
+    }
+
+    const route = await Route.findById(routeId);
+
     res.json(route);
   } catch (err) {
     next(err);
@@ -68,9 +83,15 @@ exports.getRouteById = async (req, res, next) => {
 
 exports.deleteRoute = async (req, res, next) => {
   try {
-    const route = await Route.findById(req.params.routeId);
+    const { routeId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(routeId)) {
+      return res.status(400).json({ message: "Invalid route ID" });
+    }
+
+    const route = await Route.findById(routeId);
     if (!route) return res.status(404).json({ message: "Route not found" });
-    if (route.createdBy.toString() !== req.userId)
+    if (!route.createdBy || route.createdBy.toString() !== req.userId)
       return res.status(403).json({ message: "Forbidden" });
     await route.remove();
     res.json({ message: "Route deleted" });
@@ -83,6 +104,10 @@ exports.joinRoute = async (req, res, next) => {
   try {
     const { routeId } = req.params;
     const { slotId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(routeId)) {
+      return res.status(400).json({ message: "Invalid route ID" });
+    }
 
     const existing = await Queue.findOne({ routeId, userId: req.userId });
     if (existing) return res.status(400).json({ message: "Already in queue" });
@@ -115,6 +140,11 @@ exports.joinRoute = async (req, res, next) => {
 exports.leaveRoute = async (req, res, next) => {
   try {
     const { routeId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(routeId)) {
+      return res.status(400).json({ message: "Invalid route ID" });
+    }
+
     await Queue.findOneAndDelete({ routeId, userId: req.userId });
     res.json({ message: "Left route queue" });
   } catch (err) {
@@ -124,7 +154,13 @@ exports.leaveRoute = async (req, res, next) => {
 
 exports.getQueue = async (req, res, next) => {
   try {
-    const filter = { routeId: req.params.routeId };
+    const { routeId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(routeId)) {
+      return res.status(400).json({ message: "Invalid route ID" });
+    }
+
+    const filter = { routeId };
     if (req.query.slotId) filter.slotId = req.query.slotId;
 
     const queue = await Queue.find(filter)
