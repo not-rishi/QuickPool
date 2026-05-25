@@ -1,18 +1,39 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BrandColors } from '@/constants/brand';
-import type { TravelRoute } from '@/types/route';
+import type { RouteTimeSlot, TravelRoute } from '@/types/route';
 
 type RouteCardProps = {
   route: TravelRoute;
+  onPress?: () => void;
 };
 
-export function RouteCard({ route }: RouteCardProps) {
+function formatSlot(slot?: RouteTimeSlot) {
+  if (!slot?.startTime || !slot?.endTime) return 'Schedule pending';
+  const start = new Date(slot.startTime);
+  const end = new Date(slot.endTime);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return 'Schedule pending';
+  }
+
+  const date = start.toLocaleDateString();
+  const startTime = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const endTime = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  return `${date} | ${startTime} - ${endTime}`;
+}
+
+export function RouteCard({ route, onPress }: RouteCardProps) {
+  const primarySlot = route.timeSlots?.[0];
+
   return (
-    <View style={styles.card}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && onPress && styles.cardPressed]}
+    >
       <View style={styles.headerRow}>
         <Text style={styles.routeTitle}>
-          {route.start} → {route.destination}
+          {route.start} -> {route.destination}
         </Text>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{route.batchSize}</Text>
@@ -20,25 +41,34 @@ export function RouteCard({ route }: RouteCardProps) {
       </View>
       {route.description ? <Text style={styles.description}>{route.description}</Text> : null}
       <View style={styles.metaRow}>
-        <Text style={styles.meta}>
-          {route.routeType === 'QUICK_ROUTE' ? 'Quick route' : 'Student route'}
-        </Text>
+        <View style={styles.metaPill}>
+          <Text style={styles.metaPillText}>
+            {route.routeType === 'QUICK_ROUTE' ? 'Quick route' : 'Student route'}
+          </Text>
+        </View>
         {route.createdBy?.name ? (
-          <Text style={styles.meta}>by {route.createdBy.name}</Text>
+          <Text style={styles.metaText}>by {route.createdBy.name}</Text>
         ) : null}
       </View>
-    </View>
+      <View style={styles.footerRow}>
+        <Text style={styles.slotText}>{formatSlot(primarySlot)}</Text>
+        <Text style={styles.detailHint}>View details</Text>
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: BrandColors.white,
-    borderRadius: 16,
+    backgroundColor: 'rgba(18, 18, 18, 0.55)',
+    borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 8,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 10,
+  },
+  cardPressed: {
+    opacity: 0.92,
   },
   headerRow: {
     flexDirection: 'row',
@@ -50,34 +80,62 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     fontWeight: '700',
-    color: BrandColors.text,
+    color: '#ffffff',
   },
   badge: {
     minWidth: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: BrandColors.accent,
+    backgroundColor: 'rgba(99, 102, 241, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: {
-    color: BrandColors.primary,
+    color: '#A5B4FC',
     fontWeight: '700',
     fontSize: 14,
   },
   description: {
     fontSize: 14,
-    color: BrandColors.muted,
+    color: '#A1A1AA',
     lineHeight: 20,
   },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    alignItems: 'center',
   },
-  meta: {
+  metaPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  metaPillText: {
+    fontSize: 11,
+    color: '#E5E7EB',
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  metaText: {
     fontSize: 12,
-    color: BrandColors.muted,
+    color: '#A1A1AA',
     fontWeight: '500',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  slotText: {
+    fontSize: 12,
+    color: '#CBD5F5',
+    fontWeight: '600',
+  },
+  detailHint: {
+    fontSize: 11,
+    color: '#7DD3FC',
+    fontWeight: '700',
   },
 });

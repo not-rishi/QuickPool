@@ -1,9 +1,11 @@
 import { BlurView } from "expo-blur";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   ImageBackground,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -11,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { QuickPoolLogo } from "@/components/branding/quickpool-logo";
 import { RouteCard } from "@/components/routes/route-card";
 import { API_ENDPOINTS } from "@/config/api";
 import { useAuth } from "@/context/auth-context";
@@ -56,6 +59,16 @@ export default function HomeScreen() {
     })();
   }, [loadRoutes]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadRoutes();
+    }, [loadRoutes]),
+  );
+
+  const handleCreateRoute = useCallback(() => {
+    router.push("/create-route");
+  }, []);
+
   async function onRefresh() {
     setRefreshing(true);
     await loadRoutes();
@@ -70,31 +83,55 @@ export default function HomeScreen() {
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       />
+      <View pointerEvents="none" style={styles.backgroundOverlay} />
 
       <SafeAreaView style={styles.safe} edges={["top"]}>
         {/* Glassmorphic Header */}
         <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
-          <View>
-            <Text style={styles.greeting}>Welcome back</Text>
-            <Text style={styles.name}>
-              {user?.name ?? user?.usn ?? "Student"}
-            </Text>
+          <View style={styles.headerLeft}>
+            <QuickPoolLogo size={42} />
+            <View>
+              <Text style={styles.greeting}>Welcome back</Text>
+              <Text style={styles.name}>
+                {user?.name ?? user?.usn ?? "Student"}
+              </Text>
+            </View>
           </View>
           <View style={styles.scorePill}>
             <Text style={styles.scoreLabel}>Score</Text>
-            <Text style={styles.scoreValue}>{user?.reputationScore ?? 100}</Text>
+            <Text style={styles.scoreValue}>
+              {user?.reputationScore ?? 100}
+            </Text>
           </View>
         </BlurView>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available routes</Text>
-          <Text style={styles.sectionSubtitle}>
-            Join a route to get matched with students heading the same way.
-          </Text>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionTextBlock}>
+              <Text style={styles.sectionTitle}>Available routes</Text>
+              <Text style={styles.sectionSubtitle}>
+                Join a route to get matched with students heading the same way.
+              </Text>
+              <Text style={styles.sectionMeta}>
+                {routes.length} active routes
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleCreateRoute}
+              style={styles.createButton}
+            >
+              <Text style={styles.createButtonText}>Create route</Text>
+            </Pressable>
+          </View>
         </View>
 
         {loading ? (
-          <ActivityIndicator style={styles.loader} color="#6366f1" size="large" />
+          <ActivityIndicator
+            style={styles.loader}
+            color="#6366f1"
+            size="large"
+          />
         ) : error ? (
           <BlurView intensity={30} tint="dark" style={styles.glassBox}>
             <Text style={styles.emptyTitle}>Could not load routes</Text>
@@ -123,7 +160,15 @@ export default function HomeScreen() {
             }
             renderItem={({ item }) => (
               <View style={styles.cardWrap}>
-                <RouteCard route={item} />
+                <RouteCard
+                  route={item}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/routes/[routeId]",
+                      params: { routeId: item._id },
+                    })
+                  }
+                />
               </View>
             )}
           />
@@ -141,6 +186,10 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
   },
+  backgroundOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(5, 5, 5, 0.7)",
+  },
   headerGlass: {
     flexDirection: "row",
     alignItems: "center",
@@ -151,6 +200,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
     backgroundColor: "rgba(18, 18, 18, 0.4)",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   greeting: {
     fontSize: 13,
@@ -190,6 +244,15 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 16,
   },
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  sectionTextBlock: {
+    flex: 1,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "800",
@@ -201,6 +264,26 @@ const styles = StyleSheet.create({
     color: "#a1a1aa",
     marginTop: 4,
     lineHeight: 20,
+  },
+  sectionMeta: {
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 8,
+    fontWeight: "600",
+  },
+  createButton: {
+    backgroundColor: "rgba(10, 126, 164, 0.18)",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "rgba(10, 126, 164, 0.4)",
+  },
+  createButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#E6F4FE",
+    letterSpacing: 0.2,
   },
   list: {
     paddingHorizontal: 20,

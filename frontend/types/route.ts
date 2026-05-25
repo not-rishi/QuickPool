@@ -1,5 +1,11 @@
 export type RouteBatchSize = 3 | 4 | 6;
-export type RouteType = 'QUICK_ROUTE' | 'USER_ROUTE';
+export type RouteType = "QUICK_ROUTE" | "USER_ROUTE";
+
+export interface RouteTimeSlot {
+  _id: string;
+  startTime: string;
+  endTime: string;
+}
 
 export interface RouteCreator {
   _id: string;
@@ -15,6 +21,8 @@ export interface TravelRoute {
   batchSize: RouteBatchSize;
   routeType: RouteType;
   active: boolean;
+  timeSlots?: RouteTimeSlot[];
   createdBy?: RouteCreator | null;
+  expiresAt?: string;
   createdAt?: string;
 }
