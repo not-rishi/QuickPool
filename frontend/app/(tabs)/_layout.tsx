@@ -8,7 +8,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          headerShown: true,
+          headerShown: false,
         }}
       />
 
@@ -16,7 +16,7 @@ export default function TabLayout() {
         name="group"
         options={{
           title: "Group",
-          headerShown: true,
+          headerShown: false,
         }}
       />
 
@@ -24,7 +24,7 @@ export default function TabLayout() {
         name="history"
         options={{
           title: "History",
-          headerShown: true,
+          headerShown: false,
         }}
       />
 
@@ -32,6 +32,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
+          headerShown:false,
         }}
       />
     </Tabs>

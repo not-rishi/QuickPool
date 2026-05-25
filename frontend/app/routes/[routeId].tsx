@@ -3,20 +3,45 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
-import { QuickPoolLogo } from "@/components/branding/quickpool-logo";
 import { API_ENDPOINTS } from "@/config/api";
 import { BrandColors } from "@/constants/brand";
 import { useAuth } from "@/context/auth-context";
 import type { QueueEntry } from "@/types/queue";
 import type { RouteTimeSlot, TravelRoute } from "@/types/route";
+
+const MAP_PLACEHOLDER = require("@/assets/images/map-placeholder.png");
+
+const AVATARS: Record<number, any> = {
+  1: require("@/assets/images/avatars/avatar1.png"),
+  2: require("@/assets/images/avatars/avatar2.png"),
+  3: require("@/assets/images/avatars/avatar3.png"),
+  4: require("@/assets/images/avatars/avatar4.png"),
+  5: require("@/assets/images/avatars/avatar5.png"),
+  6: require("@/assets/images/avatars/avatar6.png"),
+  7: require("@/assets/images/avatars/avatar7.png"),
+  8: require("@/assets/images/avatars/avatar8.png"),
+  9: require("@/assets/images/avatars/avatar9.png"),
+  10: require("@/assets/images/avatars/avatar10.png"),
+};
+
+const getAvatarForId = (id: string = "") => {
+  let sum = 0;
+  for (let i = 0; i < id.length; i++) {
+    sum += id.charCodeAt(i);
+  }
+  return AVATARS[(sum % 10) + 1] || AVATARS[1];
+};
 
 function formatSlot(slot?: RouteTimeSlot) {
   if (!slot?.startTime || !slot?.endTime) return "Schedule pending";
@@ -25,7 +50,6 @@ function formatSlot(slot?: RouteTimeSlot) {
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     return "Schedule pending";
   }
-  const date = start.toLocaleDateString();
   const startTime = start.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
@@ -34,7 +58,7 @@ function formatSlot(slot?: RouteTimeSlot) {
     hour: "2-digit",
     minute: "2-digit",
   });
-  return `${date} | ${startTime} - ${endTime}`;
+  return `${startTime} - ${endTime}`;
 }
 
 export default function RouteDetailsScreen() {
@@ -206,11 +230,7 @@ export default function RouteDetailsScreen() {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safe} edges={["top"]}>
-          <ActivityIndicator
-            style={styles.loader}
-            color="#6366f1"
-            size="large"
-          />
+          <ActivityIndicator style={styles.loader} color="#8B5CF6" size="large" />
         </SafeAreaView>
       </View>
     );
@@ -220,159 +240,212 @@ export default function RouteDetailsScreen() {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safe} edges={["top"]}>
-          <BlurView intensity={30} tint="dark" style={styles.glassBox}>
+          <View style={styles.glassBox}>
             <Text style={styles.emptyTitle}>Route not found</Text>
             <Text style={styles.emptyText}>{error ?? "Try again later."}</Text>
-          </BlurView>
+          </View>
         </SafeAreaView>
       </View>
     );
   }
 
+  const batchSize = route.batchSize || 4;
+  const fillPercentage = Math.min(Math.round((queue.length / batchSize) * 100), 100);
+  const emptySlots = Math.max(0, batchSize - queue.length);
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
-            <View style={styles.headerRow}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => router.back()}
-              >
-                <Text style={styles.backText}>Back</Text>
-              </Pressable>
-              <QuickPoolLogo size={36} />
-            </View>
-            <Text style={styles.title}>
-              {route.start} to {route.destination}
-            </Text>
-            <Text style={styles.subtitle}>
-              Batch size {route.batchSize} |{" "}
-              {route.routeType === "QUICK_ROUTE"
-                ? "Quick route"
-                : "Student route"}
-            </Text>
-          </BlurView>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={20} color="#E2E8F0" />
+          </Pressable>
+          <Text style={styles.headerTitle}>Route Details</Text>
+          <View style={{ width: 40 }} />
+        </View>
 
-          <BlurView intensity={26} tint="dark" style={styles.card}>
-            <Text style={styles.sectionTitle}>Route details</Text>
-            {route.description ? (
-              <Text style={styles.description}>{route.description}</Text>
-            ) : null}
-            <View style={styles.metaRow}>
-              <Text style={styles.metaText}>
-                Created{" "}
-                {route.createdBy?.name
-                  ? `by ${route.createdBy.name}`
-                  : "by system"}
-              </Text>
-              {route.expiresAt ? (
-                <Text style={styles.metaText}>
-                  Expires {new Date(route.expiresAt).toLocaleString()}
-                </Text>
-              ) : null}
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* MAP CARD */}
+          <View style={styles.mapCard}>
+            <Image source={MAP_PLACEHOLDER} style={styles.mapImage} resizeMode="cover" />
+            <View style={styles.mapOverlay}>
+              <View style={styles.locationRow}>
+                <View style={[styles.dot, { backgroundColor: "#A78BFA" }]} />
+                <View>
+                  <Text style={styles.locationLabel}>Origin</Text>
+                  <Text style={styles.locationText}>{route.start}</Text>
+                </View>
+              </View>
+              <View style={styles.locationRow}>
+                <View style={[styles.dot, { backgroundColor: "#4ADE80" }]} />
+                <View>
+                  <Text style={styles.locationLabel}>Destination</Text>
+                  <Text style={styles.locationText}>{route.destination}</Text>
+                </View>
+              </View>
             </View>
-          </BlurView>
+          </View>
 
-          <BlurView intensity={26} tint="dark" style={styles.card}>
-            <Text style={styles.sectionTitle}>Pick a time slot</Text>
-            <View style={styles.slotRow}>
-              {(route.timeSlots ?? []).map((slot) => (
-                <Pressable
-                  key={slot._id}
-                  accessibilityRole="button"
-                  onPress={() => setSelectedSlotId(slot._id)}
-                  style={[
-                    styles.slotChip,
-                    selectedSlotId === slot._id && styles.slotChipActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.slotChipText,
-                      selectedSlotId === slot._id && styles.slotChipTextActive,
-                    ]}
+          {/* TIME SLOTS */}
+          {route.timeSlots && route.timeSlots.length > 0 ? (
+            <View style={styles.slotsContainer}>
+              <Text style={styles.sectionTitle}>Available Slots</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.slotRow}>
+                {route.timeSlots.map((slot) => (
+                  <Pressable
+                    key={slot._id}
+                    onPress={() => setSelectedSlotId(slot._id)}
+                    style={[styles.slotChip, selectedSlotId === slot._id && styles.slotChipActive]}
                   >
-                    {formatSlot(slot)}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            {!route.timeSlots?.length ? (
-              <Text style={styles.emptyText}>No time slots published yet.</Text>
-            ) : null}
-          </BlurView>
-
-          <BlurView intensity={26} tint="dark" style={styles.card}>
-            <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>Queue</Text>
-              {queueLoading ? (
-                <Text style={styles.metaText}>Refreshing...</Text>
-              ) : (
-                <Text style={styles.metaText}>{queue.length} in queue</Text>
-              )}
-            </View>
-            <View style={styles.queueList}>
-              {queue.slice(0, 5).map((entry) => {
-                const member =
-                  typeof entry.userId === "string" ? null : entry.userId;
-                return (
-                  <View key={entry._id} style={styles.queueItem}>
-                    <Text style={styles.queueName}>
-                      {member?.name ?? "Student"}
+                    <Ionicons 
+                      name="time-outline" 
+                      size={14} 
+                      color={selectedSlotId === slot._id ? "#F3E8FF" : "#94A3B8"} 
+                    />
+                    <Text style={[styles.slotChipText, selectedSlotId === slot._id && styles.slotChipTextActive]}>
+                      {formatSlot(slot)}
                     </Text>
-                    <Text style={styles.queueMeta}>{member?.usn ?? ""}</Text>
-                  </View>
-                );
-              })}
+                  </Pressable>
+                ))}
+              </ScrollView>
             </View>
-            {queue.length > 5 ? (
-              <Text style={styles.metaText}>
-                and {queue.length - 5} more in queue
-              </Text>
-            ) : null}
-          </BlurView>
-
-          {canPickFemaleOnly ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setFemaleOnly((prev) => !prev)}
-              style={[
-                styles.femaleToggle,
-                femaleOnly && styles.femaleToggleActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.femaleToggleText,
-                  femaleOnly && styles.femaleToggleTextActive,
-                ]}
-              >
-                Female-only preference {femaleOnly ? "enabled" : "disabled"}
-              </Text>
-            </Pressable>
           ) : null}
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {/* STATS GRID */}
+          <View style={styles.statsGrid}>
+            <View style={styles.statBox}>
+              <Ionicons name="swap-horizontal" size={20} color="#A78BFA" />
+              <View>
+                <Text style={styles.statLabel}>Route Type</Text>
+                <Text style={styles.statValue}>
+                  {route.routeType === "QUICK_ROUTE" ? "Quick" : "Student"}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.statBox}>
+              <Ionicons name="people" size={20} color="#A78BFA" />
+              <View>
+                <Text style={styles.statLabel}>Batch Size</Text>
+                <Text style={styles.statValue}>{batchSize} Max</Text>
+              </View>
+            </View>
+          </View>
 
+          {/* QUEUE SUMMARY */}
+          <View style={styles.card}>
+            <View style={styles.queueHeaderRow}>
+              <View>
+                <Text style={styles.statLabel}>Current Queue</Text>
+                <View style={styles.queueCountRow}>
+                  <Text style={styles.statValue}>{queue.length} Students</Text>
+                  {queue.length > 0 ? (
+                    <Ionicons name="trending-up" size={16} color="#4ADE80" style={{ marginLeft: 6 }} />
+                  ) : null}
+                </View>
+              </View>
+              <View style={styles.percentageCircle}>
+                <Text style={styles.percentageText}>{fillPercentage}%</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* FEMALE TOGGLE */}
+          {canPickFemaleOnly ? (
+            <View style={styles.card}>
+              <View style={styles.toggleRow}>
+                <View style={styles.toggleIconContainer}>
+                  <Ionicons name="female" size={18} color="#A78BFA" />
+                </View>
+                <View style={styles.toggleTextContainer}>
+                  <Text style={styles.toggleTitle}>Female Only Match</Text>
+                  <Text style={styles.toggleSubtitle}>Prefer sharing with female students</Text>
+                </View>
+                <Switch
+                  value={femaleOnly}
+                  onValueChange={setFemaleOnly}
+                  trackColor={{ false: "#3F3F46", true: "#8B5CF6" }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+            </View>
+          ) : null}
+
+          {/* STUDENTS IN QUEUE */}
+          <View style={styles.queueSection}>
+            <Text style={styles.sectionHeading}>Students in Queue</Text>
+            
+            <View style={styles.queueList}>
+              {queueLoading ? (
+                <ActivityIndicator color="#8B5CF6" size="small" style={{ marginVertical: 10 }} />
+              ) : null}
+              
+              {!queueLoading && queue.length > 0 ? (
+                queue.map((entry) => {
+                  const member = typeof entry.userId === "string" ? null : entry.userId;
+                  const memberId = member?._id || (typeof entry.userId === "string" ? entry.userId : "default");
+                  const avatarSource = getAvatarForId(memberId);
+
+                  return (
+                    <View key={entry._id} style={styles.queueItemCard}>
+                      <View style={styles.queueItemLeft}>
+                        <Image source={avatarSource} style={styles.avatarImage} />
+                        <View>
+                          <Text style={styles.studentName}>{member?.name ?? "Student"}</Text>
+                          <Text style={styles.studentDetail}>{member?.usn || "Member"}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.joinedBadge}>
+                        <Text style={styles.joinedText}>In Queue</Text>
+                      </View>
+                    </View>
+                  );
+                })
+              ) : null}
+
+              {/* EMPTY SLOTS */}
+              {!queueLoading ? (
+                Array.from({ length: emptySlots }).map((_, idx) => (
+                  <View key={`empty-${idx}`} style={styles.emptySlotCard}>
+                    <View style={styles.emptySlotIcon}>
+                      <Ionicons name="person-add" size={16} color="#52525B" />
+                    </View>
+                    <View>
+                      <Text style={styles.emptySlotTitle}>Available Slot</Text>
+                      <Text style={styles.emptySlotText}>Join to fill</Text>
+                    </View>
+                  </View>
+                ))
+              ) : null}
+            </View>
+          </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          
+          <View style={{ height: 100 }} />
+        </ScrollView>
+
+        {/* BOTTOM ACTION BUTTON */}
+        <View style={styles.bottomBar}>
           <Pressable
             accessibilityRole="button"
             onPress={isInQueue ? handleLeave : handleJoin}
             disabled={actionLoading}
-            style={[
-              styles.actionButton,
-              isInQueue && styles.actionButtonSecondary,
-            ]}
+            style={[styles.actionButton, isInQueue && styles.actionButtonLeave]}
           >
             <Text style={styles.actionButtonText}>
               {actionLoading
                 ? "Working..."
                 : isInQueue
-                  ? "Leave queue"
-                  : "Join this route"}
+                  ? "Leave Queue"
+                  : "Join Queue"}
             </Text>
+            {!actionLoading && !isInQueue ? (
+              <Ionicons name="arrow-forward" size={20} color="#fff" style={{ marginLeft: 8 }} />
+            ) : null}
           </Pressable>
-        </ScrollView>
+        </View>
+
       </SafeAreaView>
     </View>
   );
@@ -381,175 +454,337 @@ export default function RouteDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#050505",
+    backgroundColor: "#0A0A0A",
   },
   safe: {
     flex: 1,
   },
-  content: {
-    padding: 20,
-    gap: 16,
-  },
-  headerGlass: {
-    borderRadius: 22,
-    padding: 20,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.4)",
-  },
-  headerRow: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  backText: {
-    fontSize: 12,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#171717",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "700",
-    color: BrandColors.accent,
-    textTransform: "uppercase",
-    letterSpacing: 1.4,
+    color: "#E9D5FF",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#ffffff",
-    letterSpacing: -0.4,
+  content: {
+    padding: 20,
+    paddingTop: 0,
+    gap: 16,
   },
-  subtitle: {
-    fontSize: 13,
-    color: "#a1a1aa",
-  },
-  card: {
-    borderRadius: 22,
-    padding: 18,
-    gap: 10,
+  mapCard: {
+    borderRadius: 24,
+    overflow: "hidden",
+    backgroundColor: "#171717",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.45)",
+    borderColor: "#262626",
+    height: 160,
+    position: "relative",
+  },
+  mapImage: {
+    width: "100%",
+    height: "100%",
+    opacity: 0.6,
+  },
+  mapOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(23, 23, 23, 0.8)",
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  locationLabel: {
+    fontSize: 11,
+    color: "#A1A1AA",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  locationText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginTop: 2,
+  },
+  slotsContainer: {
+    gap: 12,
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#E5E7EB",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  description: {
-    fontSize: 14,
-    color: "#D4D4D8",
-    lineHeight: 20,
-  },
-  metaRow: {
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 12,
-    color: "#94A3B8",
   },
   slotRow: {
     gap: 10,
   },
   slotChip: {
-    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    padding: 12,
-    backgroundColor: "rgba(9, 9, 11, 0.7)",
+    borderColor: "#262626",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#171717",
   },
   slotChipActive: {
-    borderColor: "rgba(99, 102, 241, 0.6)",
-    backgroundColor: "rgba(99, 102, 241, 0.2)",
+    borderColor: "#8B5CF6",
+    backgroundColor: "rgba(139, 92, 246, 0.15)",
   },
   slotChipText: {
     fontSize: 13,
-    color: "#E5E7EB",
-    fontWeight: "600",
+    color: "#A1A1AA",
+    fontWeight: "500",
   },
   slotChipTextActive: {
-    color: "#E0E7FF",
+    color: "#E9D5FF",
+    fontWeight: "600",
   },
-  sectionRow: {
+  statsGrid: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: "#171717",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#262626",
+    gap: 12,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#A1A1AA",
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  card: {
+    backgroundColor: "#171717",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#262626",
+  },
+  queueHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  queueCountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  percentageCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  percentageText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#E9D5FF",
+  },
+  toggleRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  toggleIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(139, 92, 246, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  toggleTextContainer: {
+    flex: 1,
+  },
+  toggleTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  toggleSubtitle: {
+    fontSize: 12,
+    color: "#A1A1AA",
+    marginTop: 2,
+  },
+  queueSection: {
+    marginTop: 8,
+  },
+  sectionHeading: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: 16,
   },
   queueList: {
-    gap: 10,
+    gap: 12,
   },
-  queueItem: {
+  queueItemCard: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-  },
-  queueName: {
-    fontSize: 13,
-    color: "#F8FAFC",
-    fontWeight: "600",
-  },
-  queueMeta: {
-    fontSize: 12,
-    color: "#94A3B8",
-  },
-  femaleToggle: {
+    backgroundColor: "#171717",
     borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    padding: 12,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    backgroundColor: "rgba(15, 23, 42, 0.8)",
+    borderColor: "#262626",
   },
-  femaleToggleActive: {
-    borderColor: "rgba(236, 72, 153, 0.6)",
-    backgroundColor: "rgba(236, 72, 153, 0.2)",
+  queueItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
-  femaleToggleText: {
-    fontSize: 13,
-    color: "#E2E8F0",
+  avatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#262626",
+  },
+  studentName: {
+    fontSize: 15,
     fontWeight: "600",
+    color: "#FFFFFF",
   },
-  femaleToggleTextActive: {
-    color: "#FBCFE8",
+  studentDetail: {
+    fontSize: 13,
+    color: "#A1A1AA",
+    marginTop: 2,
+  },
+  joinedBadge: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  joinedText: {
+    fontSize: 11,
+    color: "#D4D4D8",
+    fontWeight: "500",
+  },
+  emptySlotCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#262626",
+    borderStyle: "dashed",
+    backgroundColor: "transparent",
+  },
+  emptySlotIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#171717",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptySlotTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#52525B",
+  },
+  emptySlotText: {
+    fontSize: 13,
+    color: "#3F3F46",
+    marginTop: 2,
+  },
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: "#0A0A0A",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.05)",
   },
   actionButton: {
-    borderRadius: 18,
-    paddingVertical: 14,
+    flexDirection: "row",
+    borderRadius: 24,
+    paddingVertical: 18,
     alignItems: "center",
-    backgroundColor: "#6366f1",
+    justifyContent: "center",
+    backgroundColor: "#8B5CF6",
   },
-  actionButtonSecondary: {
-    backgroundColor: "#1F2937",
+  actionButtonLeave: {
+    backgroundColor: "#27272A",
   },
   actionButtonText: {
-    color: "#ffffff",
-    fontSize: 15,
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "700",
   },
-  error: {
+  errorText: {
     color: BrandColors.danger,
-    fontSize: 12,
+    fontSize: 13,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   glassBox: {
     margin: 20,
     padding: 24,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.4)",
+    borderColor: "#262626",
+    backgroundColor: "#171717",
     alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#FFFFFF",
   },
   emptyText: {
     fontSize: 14,
-    color: "#a1a1aa",
-    lineHeight: 20,
+    color: "#A1A1AA",
     textAlign: "center",
-  },
-  loader: {
-    marginTop: 60,
   },
 });

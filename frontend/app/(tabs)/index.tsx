@@ -1,10 +1,10 @@
-// app/home.tsx (or wherever your HomeScreen is located)
-import { BlurView } from "expo-blur";
+// app/home.tsx
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   ImageBackground,
   Pressable,
   RefreshControl,
@@ -13,12 +13,37 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import { QuickPoolLogo } from "@/components/branding/quickpool-logo";
 import { RouteCard } from "@/components/routes/route-card";
 import { API_ENDPOINTS } from "@/config/api";
 import { useAuth } from "@/context/auth-context";
 import type { TravelRoute } from "@/types/route";
+
+const MAP_PLACEHOLDER = require("@/assets/images/map-placeholder.png");
+const TRAVEL_GIF = require("@/assets/animated/travel.gif");
+
+const AVATARS: Record<number, any> = {
+  1: require("@/assets/images/avatars/avatar1.png"),
+  2: require("@/assets/images/avatars/avatar2.png"),
+  3: require("@/assets/images/avatars/avatar3.png"),
+  4: require("@/assets/images/avatars/avatar4.png"),
+  5: require("@/assets/images/avatars/avatar5.png"),
+  6: require("@/assets/images/avatars/avatar6.png"),
+  7: require("@/assets/images/avatars/avatar7.png"),
+  8: require("@/assets/images/avatars/avatar8.png"),
+  9: require("@/assets/images/avatars/avatar9.png"),
+  10: require("@/assets/images/avatars/avatar10.png"),
+};
+
+const getAvatarForId = (id: string = "") => {
+  let sum = 0;
+  for (let i = 0; i < id.length; i++) {
+    sum += id.charCodeAt(i);
+  }
+  return AVATARS[(sum % 10) + 1] || AVATARS[1];
+};
 
 export default function HomeScreen() {
   const { token, user } = useAuth();
@@ -27,139 +52,178 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Unified function handling its own loading state (matches working HistoryScreen)
-  // We pass isBackgroundRefresh to prevent the main spinner from showing during pull-to-refresh
-  const loadRoutes = useCallback(async (isBackgroundRefresh = false) => {
-    if (!token) {
-      setLoading(false); // Failsafe to prevent lockup if token is missing
-      return;
-    }
-    
-    if (!isBackgroundRefresh) setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(API_ENDPOINTS.routes.base, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || "Failed to load routes");
+  const loadRoutes = useCallback(
+    async (isBackgroundRefresh = false) => {
+      if (!token) {
+        setLoading(false);
+        return;
       }
 
-      const data = await response.json();
-      setRoutes(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to connect to the server.");
-    } finally {
-      if (!isBackgroundRefresh) setLoading(false);
-    }
-  }, [token]);
+      if (!isBackgroundRefresh) setLoading(true);
+      setError(null);
 
-  // 2. Simplified useFocusEffect
+      try {
+        const response = await fetch(API_ENDPOINTS.routes.base, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.message || "Failed to load routes");
+        }
+
+        const data = await response.json();
+        setRoutes(data);
+      } catch (err: any) {
+        setError(err.message || "Failed to connect to the server.");
+      } finally {
+        if (!isBackgroundRefresh) setLoading(false);
+      }
+    },
+    [token],
+  );
+
   useFocusEffect(
     useCallback(() => {
       loadRoutes();
-    }, [loadRoutes])
+    }, [loadRoutes]),
   );
 
   const handleCreateRoute = useCallback(() => {
     router.push("/create-route");
   }, []);
 
-  // 3. Independent refresh handler passing the background flag
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadRoutes(true); // Pass true to skip the main ActivityIndicator
+    await loadRoutes(true);
     setRefreshing(false);
   }, [loadRoutes]);
 
-  return (
-    <View style={styles.container}>
-      <ImageBackground
-        source={require("@/assets/images/background.png")}
-        style={StyleSheet.absoluteFillObject}
-        resizeMode="cover"
-      />
-      <View pointerEvents="none" style={styles.backgroundOverlay} />
+  const userAvatar = getAvatarForId(user?._id || user?.usn || "default");
 
-      <SafeAreaView style={styles.safe} edges={["top"]}>
-        <BlurView intensity={30} tint="dark" style={styles.headerGlass}>
-          <View style={styles.headerLeft}>
-            <QuickPoolLogo size={42} />
-            <View>
-              <Text style={styles.greeting}>Welcome back</Text>
-              <Text style={styles.name}>
-                {user?.name ?? user?.usn ?? "Student"}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.scorePill}>
-            <Text style={styles.scoreLabel}>Score</Text>
-            <Text style={styles.scoreValue}>
-              {user?.reputationScore ?? 100}
+  // Render header elements directly inside FlatList to keep a perfectly smooth screen-wide pull-to-refresh
+  const renderHeader = () => (
+    <View style={styles.headerBlock}>
+      {/* NATIVE PROFILE BLOCK (No upper thick bar) */}
+      <View style={styles.profileRow}>
+        <View style={styles.profileLeft}>
+          <Image source={userAvatar} style={styles.avatarImage} />
+          <View>
+            <Text style={styles.greeting}>Welcome back,</Text>
+            <Text style={styles.name}>
+              {user?.name ?? user?.usn ?? "Student"}
             </Text>
           </View>
-        </BlurView>
+        </View>
+        <View style={styles.scorePill}>
+          <Ionicons name="star" size={13} color="#A78BFA" />
+          <Text style={styles.scoreValue}>{user?.reputationScore ?? 100}</Text>
+        </View>
+      </View>
 
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
-            <View style={styles.sectionTextBlock}>
-              <Text style={styles.sectionTitle}>Available routes</Text>
-              <Text style={styles.sectionSubtitle}>
-                Join a route to get matched with students heading the same way.
-              </Text>
-              <Text style={styles.sectionMeta}>
-                {routes.length} active routes
+      {/* FLOATING MAP PLACEHOLDER BANNER */}
+      <View style={styles.mapBannerCard}>
+        <ImageBackground
+          source={TRAVEL_GIF}
+          style={styles.mapBannerImage}
+          imageStyle={{ opacity: 0.4 }}
+          resizeMode="cover"
+        >
+          <View style={styles.mapBannerOverlay}>
+            <View>
+              <Text style={styles.mapBannerTitle}>Find Your Ride Bunch</Text>
+              <Text style={styles.mapBannerSubtitle}>
+                Split fares, meet peers, save time
               </Text>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              onPress={handleCreateRoute}
-              style={styles.createButton}
-            >
-              <Text style={styles.createButtonText}>Create route</Text>
-            </Pressable>
+            <View style={styles.mapBannerIconBox}>
+              <Ionicons name="navigate" size={20} color="#8B5CF6" />
+            </View>
           </View>
-        </View>
+        </ImageBackground>
+      </View>
 
+      {/* SCREEN TITLE & APP LOGO SECTION */}
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionTitleRow}>
+          <View style={styles.titleWithLogo}>
+            <Image
+              source={require("@/assets/images/icon.gif")}
+              style={{ width: 35, height: 35 }}
+            />
+            <Text style={styles.sectionTitle}>Available Routes</Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleCreateRoute}
+            style={styles.createButton}
+          >
+            <Ionicons name="add" size={16} color="#FFFFFF" />
+            <Text style={styles.createButtonText}>Create</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.sectionSubtitle}>
+          Join an existing commute pipeline to automatically split travel costs.
+        </Text>
+        <Text style={styles.sectionMeta}>
+          {routes.length} active {routes.length === 1 ? "pool" : "pools"} nearby
+        </Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
         {loading && !refreshing ? (
           <ActivityIndicator
             style={styles.loader}
-            color="#6366f1"
+            color="#8B5CF6"
             size="large"
           />
         ) : error ? (
-          <BlurView intensity={30} tint="dark" style={styles.glassBox}>
-            <Text style={styles.emptyTitle}>Could not load routes</Text>
-            <Text style={styles.emptyText}>{error}</Text>
-          </BlurView>
+          <View style={{ flex: 1 }}>
+            {renderHeader()}
+            <View style={styles.glassBox}>
+              <Ionicons name="warning-outline" size={32} color="#F87171" />
+              <Text style={styles.emptyTitle}>Could not load routes</Text>
+              <Text style={styles.emptyText}>{error}</Text>
+            </View>
+          </View>
         ) : (
           <FlatList
             data={routes}
             keyExtractor={(item) => item._id}
             contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={renderHeader}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                tintColor="#6366f1"
-                colors={["#6366f1"]}
+                tintColor="#8B5CF6"
+                colors={["#8B5CF6"]}
               />
             }
             ListEmptyComponent={
-              <BlurView intensity={30} tint="dark" style={styles.glassBox}>
-                <Text style={styles.emptyTitle}>No routes yet</Text>
+              <View style={styles.glassBox}>
+                <Ionicons
+                  name="map-outline"
+                  size={32}
+                  color="#A78BFA"
+                  style={{ marginBottom: 8 }}
+                />
+                <Text style={styles.emptyTitle}>No active pools</Text>
                 <Text style={styles.emptyText}>
-                  Routes created by students and the system will appear here.
+                  No routes created yet. Use the Create button above to setup
+                  your destination route!
                 </Text>
-              </BlurView>
+              </View>
             }
             renderItem={({ item }) => (
               <View style={styles.cardWrap}>
@@ -184,141 +248,177 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#050505",
+    backgroundColor: "#0A0A0A",
   },
   safe: {
     flex: 1,
   },
-  backgroundOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(5, 5, 5, 0.7)",
+  headerBlock: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
-  headerGlass: {
+  profileRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.4)",
+    marginBottom: 20,
   },
-  headerLeft: {
+  profileLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
+  avatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#171717",
+    borderWidth: 1,
+    borderColor: "#262626",
+  },
   greeting: {
-    fontSize: 13,
-    color: "#a1a1aa",
+    fontSize: 12,
+    color: "#71717A",
     fontWeight: "500",
   },
   name: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#ffffff",
-    marginTop: 2,
-    letterSpacing: -0.5,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginTop: 1,
   },
   scorePill: {
+    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(99, 102, 241, 0.15)",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    gap: 4,
+    backgroundColor: "rgba(139, 92, 246, 0.12)",
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderWidth: 1,
-    borderColor: "rgba(99, 102, 241, 0.3)",
-  },
-  scoreLabel: {
-    fontSize: 11,
-    color: "#a1a1aa",
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    borderColor: "rgba(139, 92, 246, 0.25)",
   },
   scoreValue: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#6366f1",
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#E9D5FF",
+  },
+  mapBannerCard: {
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#1F1F23",
+    backgroundColor: "#121214",
+    marginBottom: 24,
+  },
+  mapBannerImage: {
+    width: "100%",
+    height: 150,
+    justifyContent: "center",
+  },
+  mapBannerOverlay: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  mapBannerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  mapBannerSubtitle: {
+    fontSize: 12,
+    color: "#A1A1AA",
+    marginTop: 4,
+  },
+  mapBannerIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#171719",
+    borderWidth: 1,
+    borderColor: "#262629",
+    alignItems: "center",
+    justifyContent: "center",
   },
   sectionHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 16,
+    marginBottom: 16,
   },
   sectionTitleRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
   },
-  sectionTextBlock: {
-    flex: 1,
+  titleWithLogo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "800",
-    color: "#ffffff",
-    letterSpacing: -0.5,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: -0.4,
   },
   sectionSubtitle: {
-    fontSize: 14,
-    color: "#a1a1aa",
-    marginTop: 4,
-    lineHeight: 20,
+    fontSize: 13,
+    color: "#71717A",
+    marginTop: 6,
+    lineHeight: 18,
   },
   sectionMeta: {
     fontSize: 12,
-    color: "#94A3B8",
-    marginTop: 8,
+    color: "#8B5CF6",
+    marginTop: 10,
     fontWeight: "600",
   },
   createButton: {
-    backgroundColor: "rgba(10, 126, 164, 0.18)",
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: "rgba(10, 126, 164, 0.4)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#8B5CF6",
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   createButtonText: {
     fontSize: 13,
-    fontWeight: "700",
-    color: "#E6F4FE",
-    letterSpacing: 0.2,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   list: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    gap: 12,
+    paddingBottom: 40,
   },
   cardWrap: {
-    marginBottom: 4,
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
   loader: {
-    marginTop: 60,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   glassBox: {
     marginHorizontal: 20,
-    marginTop: 12,
-    padding: 24,
-    borderRadius: 20,
+    padding: 32,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.4)",
-    overflow: "hidden",
+    borderColor: "#262626",
+    backgroundColor: "#171717",
     alignItems: "center",
     gap: 8,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#FFFFFF",
+    marginTop: 8,
   },
   emptyText: {
-    fontSize: 14,
-    color: "#a1a1aa",
+    fontSize: 13,
+    color: "#A1A1AA",
     lineHeight: 20,
     textAlign: "center",
   },
