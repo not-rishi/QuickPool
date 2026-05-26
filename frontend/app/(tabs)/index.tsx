@@ -22,7 +22,7 @@ import { useAuth } from "@/context/auth-context";
 import type { TravelRoute } from "@/types/route";
 
 const MAP_PLACEHOLDER = require("@/assets/images/map-placeholder.png");
-const TRAVEL_GIF = require("@/assets/animated/travel.gif");
+const ANIMATED_BANNER = require("@/assets/animated/travel.gif");
 
 const AVATARS: Record<number, any> = {
   1: require("@/assets/images/avatars/avatar1.png"),
@@ -130,7 +130,7 @@ export default function HomeScreen() {
       {/* FLOATING MAP PLACEHOLDER BANNER */}
       <View style={styles.mapBannerCard}>
         <ImageBackground
-          source={TRAVEL_GIF}
+          source={ANIMATED_BANNER}
           style={styles.mapBannerImage}
           imageStyle={{ opacity: 0.4 }}
           resizeMode="cover"

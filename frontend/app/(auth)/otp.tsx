@@ -166,6 +166,7 @@ export default function OtpScreen() {
                   <PrimaryButton
                     label={loading ? "Verifying..." : "Verify & Continue"}
                     onPress={handleVerify}
+                    style={styles.loginButton}
                     disabled={!isValid || loading}
                   >
                     {loading && (
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
     padding: 32,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.4)",
+    backgroundColor: "rgba(18, 18, 18, 0.6)",
     overflow: "hidden",
   },
   header: {
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   },
   usnHallmark: {
     fontWeight: "700",
-    color: "#6366f1",
+    color: "#a78bfa", // Updated from #6366f1
   },
   form: {
     gap: 24,
@@ -264,10 +265,10 @@ const styles = StyleSheet.create({
   elevatedLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#6366f1",
+    color: "#a78bfa", // Updated from #6366f1
     textTransform: "uppercase",
     letterSpacing: 1.5,
-    textShadowColor: "rgba(168, 85, 247, 0.4)",
+    textShadowColor: "rgba(167, 139, 250, 0.4)", // Updated shadow to match
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     paddingLeft: 4,
@@ -277,6 +278,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 24,
     fontWeight: "700",
+    backgroundColor:"#00000065",
+    color : "#b8b8b8",
+    borderColor:"#ffffff3a",
   },
   buttonContainer: {
     gap: 16,
@@ -289,7 +293,7 @@ const styles = StyleSheet.create({
   },
   resend: {
     textAlign: "center",
-    color: "#6366f1", // Sleek indigo option for actions
+    color: "#a78bfa", // Updated from #6366f1
     fontWeight: "600",
     fontSize: 14,
   },
@@ -298,5 +302,14 @@ const styles = StyleSheet.create({
     color: "#71717a",
     fontSize: 14,
     fontWeight: "500",
+  },
+   loginButton: {
+    backgroundColor: "#a78bfa",
+    // You can also add shadows or specific purple shades here
+    shadowColor: "#a78bfa",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
 });

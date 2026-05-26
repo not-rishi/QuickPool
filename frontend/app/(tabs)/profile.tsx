@@ -9,8 +9,8 @@ import { PrimaryButton } from "@/components/ui/primary-button";
 import { useAuth } from "@/context/auth-context";
 
 const BACKGROUND_IMAGE = require("@/assets/images/background.png");
-const ANIMATED_ICON = require("@/assets/images/icon.gif");
-const MAP_PLACEHOLDER = require("@/assets/images/map-placeholder.png");
+const ANIMATED_ICON = require("@/assets/images/icon_w.gif");
+const ANIMATED_BANNER = require("@/assets/animated/profile.gif");
 
 const AVATARS: Record<number, any> = {
   1: require("@/assets/images/avatars/avatar1.png"),
@@ -83,7 +83,7 @@ export default function ProfileScreen() {
         {/* FLOATING ACTION BANNER FEATURING THE ANIMATED GIF */}
         <View style={styles.mapBannerCard}>
           <ImageBackground 
-            source={MAP_PLACEHOLDER} 
+            source={ANIMATED_BANNER} 
             style={styles.mapBannerImage}
             imageStyle={{ opacity: 0.35 }}
             resizeMode="cover"
@@ -100,7 +100,7 @@ export default function ProfileScreen() {
               </View>
               
               <View style={styles.scorePill}>
-                <Ionicons name="star" size={13} color="#A78BFA" />
+                <Ionicons name="star" size={13} color="#ffffff" />
                 <Text style={styles.scoreValue}>
                   {user?.reputationScore ?? 100}
                 </Text>
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   gifContainer: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 5,
     overflow: "hidden",
     backgroundColor: "#171719",
     borderWidth: 1,
@@ -236,17 +236,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(139, 92, 246, 0.12)",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: "rgba(139, 92, 246, 0.25)",
+    borderColor: "rgba(255, 255, 255, 0.38)",
   },
   scoreValue: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#E9D5FF",
+    color: "#bdbcbe",
   },
   card: {
     backgroundColor: "rgba(23, 23, 23, 0.45)",

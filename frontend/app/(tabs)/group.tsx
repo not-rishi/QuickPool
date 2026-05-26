@@ -24,7 +24,7 @@ import type { TravelRoute } from "@/types/route";
 
 const BACKGROUND_IMAGE = require("@/assets/images/background.png");
 const ANIMATED_ICON = require("@/assets/images/icon.gif");
-const TRAVEL_GIF = require("@/assets/animated/travel.gif");
+const ANIMATED_BANNER = require("@/assets/animated/group.gif");
 
 const AVATARS: Record<number, any> = {
   1: require("@/assets/images/avatars/avatar1.png"),
@@ -349,7 +349,7 @@ export default function GroupScreen() {
                 <View style={styles.headerGifBox}>
                   <Image source={ANIMATED_ICON} style={styles.headerGif} />
                 </View>
-                <Text style={styles.headerTitle}>Your Group Pipeline</Text>
+                <Text style={styles.headerTitle}>Your Group Information</Text>
               </View>
               <View style={styles.statusBadge}>
                 <Text style={styles.statusText}>
@@ -366,22 +366,22 @@ export default function GroupScreen() {
 
           <View style={styles.mapBannerCard}>
             <ImageBackground
-              source={TRAVEL_GIF}
+              source={ANIMATED_BANNER}
               style={styles.mapBannerImage}
-              imageStyle={{ opacity: 0.4 }}
+              imageStyle={{ opacity: 0.2 }}
               resizeMode="cover"
             >
               <View style={styles.mapBannerOverlay}>
                 <View>
                   <Text style={styles.mapBannerTitle}>
-                    Find Your Ride Bunch
+                    Your Group info will appear here
                   </Text>
                   <Text style={styles.mapBannerSubtitle}>
-                    Split fares, meet peers, save time
+                    Don't be late for the ride!
                   </Text>
                 </View>
                 <View style={styles.mapBannerIconBox}>
-                  <Ionicons name="people" size={20} color="#8B5CF6" />
+                  <Ionicons name="people" size={20} color="#ffffff" />
                 </View>
               </View>
             </ImageBackground>
@@ -955,7 +955,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
   },
-  mapBannerTitle: {
+ mapBannerTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",

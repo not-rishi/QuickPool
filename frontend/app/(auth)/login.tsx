@@ -20,6 +20,7 @@ import { ScreenContainer } from "@/components/ui/screen-container";
 import { normalizeUsn, USN_LENGTH, USN_REGEX } from "@/constants/validation";
 import { useAuth } from "@/context/auth-context";
 import { API_ENDPOINTS } from "@/config/api"; // Importing global endpoint config
+import { sendOtp } from "@/services/auth";
 
 export default function LoginScreen() {
   const { setPendingUsn } = useAuth();
@@ -81,7 +82,7 @@ export default function LoginScreen() {
           style={styles.keyboardView}
         >
           <View style={styles.cardContainer}>
-            <BlurView intensity={30} tint="dark" style={styles.glassCard}>
+            <BlurView intensity={50} tint="dark" style={styles.glassCard}>
               <View style={styles.header}>
                 <LinearGradient
                   colors={["#6366f1", "#a855f7", "#ec4899"]}
@@ -112,6 +113,7 @@ export default function LoginScreen() {
                     onChangeText={(text) => setUsn(normalizeUsn(text))}
                     placeholder="e.g. 1BM24CS001"
                     maxLength={USN_LENGTH}
+                    style={styles.input}
                     autoFocus
                     error={error ?? undefined}
                     autoCapitalize="characters"
@@ -120,14 +122,15 @@ export default function LoginScreen() {
 
                 <View style={styles.buttonContainer}>
                   <PrimaryButton
-                    label={loading ? "Sending..." : "Send OTP"}
+                    label="Send OTP"
+                    loading={loading} // Use the built-in loading prop
                     onPress={handleContinue}
-                    disabled={!isValid || loading}
+                    disabled={!isValid}
+                    style={styles.loginButton} // Add this line
                   >
                     {loading && (
                       <ActivityIndicator
                         color="#fff"
-                        style={{ marginRight: 8 }}
                       />
                     )}
                   </PrimaryButton>
@@ -151,6 +154,14 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
   },
+  input: {
+    backgroundColor: "#00000050",
+    color: "#f0f0f097", // typed text color
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderColor: "#ffffff22",
+  },
   keyboardView: {
     flex: 1,
     width: "100%",
@@ -168,7 +179,7 @@ const styles = StyleSheet.create({
     padding: 32,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(18, 18, 18, 0.4)",
+    backgroundColor: "rgba(18, 18, 18, 0.75)",
     overflow: "hidden",
   },
   header: {
@@ -178,14 +189,14 @@ const styles = StyleSheet.create({
   logoMarker: {
     width: 72,
     height: 72,
-    borderRadius: 24,
+    borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 20,
     shadowColor: "#a855f7",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
-    shadowRadius: 16,
+    shadowRadius: 50,
     elevation: 10,
   },
   heading: {
@@ -233,6 +244,15 @@ const styles = StyleSheet.create({
   logoImage: {
     width: 72,
     height: 72,
-    borderRadius: 24,
+    borderRadius: 5,
+  },
+  loginButton: {
+    backgroundColor: "#a78bfa",
+    // You can also add shadows or specific purple shades here
+    shadowColor: "#a78bfa",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
 });

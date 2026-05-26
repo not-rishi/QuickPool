@@ -23,7 +23,7 @@ import type { TravelRoute } from "@/types/route";
 
 const BACKGROUND_IMAGE = require("@/assets/images/background.png");
 const ANIMATED_ICON = require("@/assets/images/icon.gif");
-const MAP_PLACEHOLDER = require("@/assets/images/map-placeholder.png");
+const ANIMATED_BANNER = require("@/assets/animated/history.gif");
 
 const AVATARS: Record<number, any> = {
   1: require("@/assets/images/avatars/avatar1.png"),
@@ -143,7 +143,7 @@ export default function HistoryScreen() {
               {/* FLOATING MAP LAYOUT BANNER */}
               <View style={styles.mapBannerCard}>
                 <ImageBackground 
-                  source={MAP_PLACEHOLDER} 
+                  source={ANIMATED_BANNER} 
                   style={styles.mapBannerImage}
                   imageStyle={{ opacity: 0.35 }}
                   resizeMode="cover"
@@ -154,7 +154,7 @@ export default function HistoryScreen() {
                       <Text style={styles.mapBannerSubtitle}>Total verified trip files logged: {history.length}</Text>
                     </View>
                     <View style={styles.mapBannerIconBox}>
-                      <Ionicons name="folder-open-outline" size={18} color="#8B5CF6" />
+                      <Ionicons name="book" size={18} color="#f4ecbf" />
                     </View>
                   </View>
                 </ImageBackground>
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   },
   mapBannerImage: {
     width: "100%",
-    height: 90,
+    height: 120,
     justifyContent: "center",
   },
   mapBannerOverlay: {
