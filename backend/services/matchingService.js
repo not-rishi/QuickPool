@@ -4,6 +4,8 @@ const Swap = require("../models/Swap");
 const User = require("../models/User");
 const Route = require("../models/Route");
 
+const matchingLocks = new Set();
+
 async function runMatchingLogic(routeId, slotId, isFinalizing = false) {
   const route = await Route.findById(routeId);
   if (!route) return;
@@ -22,10 +24,7 @@ async function runMatchingLogic(routeId, slotId, isFinalizing = false) {
   let available = [...queued];
   const formedGroups = [];
 
-  while (
-    available.length >= batchSize ||
-    (isFinalizing && available.length > 0)
-  ) {
+  while (available.length >= batchSize) {
     let currentGroup = [available[0]];
     available.splice(0, 1);
 
@@ -88,10 +87,14 @@ async function runMatchingLogic(routeId, slotId, isFinalizing = false) {
       }
     }
 
-    if (
-      currentGroup.length === batchSize ||
-      (isFinalizing && currentGroup.length > 0)
-    ) {
+    if (currentGroup.length === batchSize) {
+      const stillInQueue = await Queue.find({
+        _id: { $in: currentGroup.map((c) => c._id) },
+      });
+
+      if (stillInQueue.length !== currentGroup.length) {
+        continue;
+      }
       const members = currentGroup.map((q) => q.userId._id);
       const rideTime =
         route.timeSlots && route.timeSlots.length > 0
@@ -116,7 +119,20 @@ async function runMatchingLogic(routeId, slotId, isFinalizing = false) {
 }
 
 async function formGroupsForRoute(routeId, slotId) {
-  await runMatchingLogic(routeId, slotId, false);
+  const key = `${routeId}-${slotId}`;
+
+  if (matchingLocks.has(key)) {
+    console.log("Matching already running:", key);
+    return;
+  }
+
+  matchingLocks.add(key);
+
+  try {
+    await runMatchingLogic(routeId, slotId, false);
+  } finally {
+    matchingLocks.delete(key);
+  }
 }
 
 async function generateQuickRoutes() {
@@ -124,22 +140,7 @@ async function generateQuickRoutes() {
 }
 
 async function finalizeGroups() {
-  console.log("Finalizing groups...");
-  const now = new Date();
-  const routes = await Route.find({ active: true });
-  for (const route of routes) {
-    if (route.timeSlots) {
-      for (const slot of route.timeSlots) {
-        const startTime = new Date(slot.startTime);
-        if (
-          startTime <= now &&
-          now.getTime() - startTime.getTime() < 1000 * 60 * 60 * 24
-        ) {
-          await runMatchingLogic(route._id, slot._id, true);
-        }
-      }
-    }
-  }
+   return;
 }
 
 module.exports = { formGroupsForRoute, generateQuickRoutes, finalizeGroups };

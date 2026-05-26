@@ -32,12 +32,46 @@ exports.getGroupById = async (req, res, next) => {
 exports.leaveGroup = async (req, res, next) => {
   try {
     const { groupId } = req.params;
+
     const group = await Group.findById(groupId);
-    if (!group) return res.status(404).json({ message: "Group not found" });
-    group.members = group.members.filter((m) => m.toString() !== req.userId);
-    await group.save();
-    res.json({ message: "Left group" });
-  } catch (err) {
+
+    if (!group)
+      return res.status(404).json({
+        message: "Group not found"
+      });
+
+    // Remove leaving user
+    const remainingMembers = group.members.filter(
+      (m) => m.toString() !== req.userId
+    );
+
+    // Delete old group completely
+    await Group.findByIdAndDelete(groupId);
+
+    // Put remaining members back in queue
+    if (remainingMembers.length > 0) {
+
+      const queueEntries = remainingMembers.map(memberId => ({
+        routeId: group.routeId,
+        slotId: group.slotId,
+        userId: memberId,
+        femaleOnly: false
+      }));
+
+      await Queue.insertMany(queueEntries);
+
+      // Re-run matching
+      await formGroupsForRoute(
+        group.routeId,
+        group.slotId
+      );
+    }
+
+    res.json({
+      message: "Left group successfully"
+    });
+
+  } catch(err){
     next(err);
   }
 };

@@ -402,8 +402,6 @@ QuickPool
 │     ├─ generateOTP.js
 │     └─ generateToken.js
 ├─ frontend
-│  ├─ .claude
-│  │  └─ settings.json
 │  ├─ .env
 │  ├─ .env.example
 │  ├─ .expo

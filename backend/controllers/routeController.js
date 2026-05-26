@@ -75,7 +75,14 @@ exports.getRouteById = async (req, res, next) => {
 
     const route = await Route.findById(routeId);
 
-    res.json(route);
+    const alreadyJoined = await Queue.findOne({
+      userId: req.userId,
+    });
+
+    res.json({
+      ...route.toObject(),
+      alreadyJoined: !!alreadyJoined,
+    });
   } catch (err) {
     next(err);
   }
@@ -92,7 +99,7 @@ exports.deleteRoute = async (req, res, next) => {
     const route = await Route.findById(routeId);
     if (!route) return res.status(404).json({ message: "Route not found" });
 
-    // ⚡ Allow deletion if it's the admin panel bypassing auth, 
+    // ⚡ Allow deletion if it's the admin panel bypassing auth,
     // otherwise enforce strict creator ownership rules.
     const isAdminBypass = req.headers["x-admin-bypass"] === "true";
 
@@ -103,7 +110,7 @@ exports.deleteRoute = async (req, res, next) => {
     }
 
     // Use deleteOne since remove() is deprecated in newer Mongoose versions
-    await Route.deleteOne({ _id: routeId }); 
+    await Route.deleteOne({ _id: routeId });
     res.json({ message: "Route deleted successfully" });
   } catch (err) {
     next(err);
@@ -119,7 +126,16 @@ exports.joinRoute = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid route ID" });
     }
 
-    const existing = await Queue.findOne({ routeId, userId: req.userId });
+    const existing = await Queue.findOne({
+      routeId,
+      userId: req.userId,
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        message: "Already joined a slot",
+      });
+    }
     if (existing) return res.status(400).json({ message: "Already in queue" });
 
     const route = await Route.findById(routeId);

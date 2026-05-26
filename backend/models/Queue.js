@@ -26,4 +26,6 @@ const queueSchema = new mongoose.Schema({
   },
 });
 
+queueSchema.index({ routeId: 1, slotId: 1, userId: 1 }, { unique: true });
+
 module.exports = mongoose.model("Queue", queueSchema);

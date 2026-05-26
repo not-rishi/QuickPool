@@ -230,7 +230,11 @@ export default function RouteDetailsScreen() {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safe} edges={["top"]}>
-          <ActivityIndicator style={styles.loader} color="#8B5CF6" size="large" />
+          <ActivityIndicator
+            style={styles.loader}
+            color="#8B5CF6"
+            size="large"
+          />
         </SafeAreaView>
       </View>
     );
@@ -250,7 +254,10 @@ export default function RouteDetailsScreen() {
   }
 
   const batchSize = route.batchSize || 4;
-  const fillPercentage = Math.min(Math.round((queue.length / batchSize) * 100), 100);
+  const fillPercentage = Math.min(
+    Math.round((queue.length / batchSize) * 100),
+    100,
+  );
   const emptySlots = Math.max(0, batchSize - queue.length);
 
   return (
@@ -265,10 +272,17 @@ export default function RouteDetailsScreen() {
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
           {/* MAP CARD */}
           <View style={styles.mapCard}>
-            <Image source={MAP_PLACEHOLDER} style={styles.mapImage} resizeMode="cover" />
+            <Image
+              source={MAP_PLACEHOLDER}
+              style={styles.mapImage}
+              resizeMode="cover"
+            />
             <View style={styles.mapOverlay}>
               <View style={styles.locationRow}>
                 <View style={[styles.dot, { backgroundColor: "#A78BFA" }]} />
@@ -291,19 +305,34 @@ export default function RouteDetailsScreen() {
           {route.timeSlots && route.timeSlots.length > 0 ? (
             <View style={styles.slotsContainer}>
               <Text style={styles.sectionTitle}>Available Slots</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.slotRow}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.slotRow}
+              >
                 {route.timeSlots.map((slot) => (
                   <Pressable
                     key={slot._id}
                     onPress={() => setSelectedSlotId(slot._id)}
-                    style={[styles.slotChip, selectedSlotId === slot._id && styles.slotChipActive]}
+                    style={[
+                      styles.slotChip,
+                      selectedSlotId === slot._id && styles.slotChipActive,
+                    ]}
                   >
-                    <Ionicons 
-                      name="time-outline" 
-                      size={14} 
-                      color={selectedSlotId === slot._id ? "#F3E8FF" : "#94A3B8"} 
+                    <Ionicons
+                      name="time-outline"
+                      size={14}
+                      color={
+                        selectedSlotId === slot._id ? "#F3E8FF" : "#94A3B8"
+                      }
                     />
-                    <Text style={[styles.slotChipText, selectedSlotId === slot._id && styles.slotChipTextActive]}>
+                    <Text
+                      style={[
+                        styles.slotChipText,
+                        selectedSlotId === slot._id &&
+                          styles.slotChipTextActive,
+                      ]}
+                    >
                       {formatSlot(slot)}
                     </Text>
                   </Pressable>
@@ -340,7 +369,12 @@ export default function RouteDetailsScreen() {
                 <View style={styles.queueCountRow}>
                   <Text style={styles.statValue}>{queue.length} Students</Text>
                   {queue.length > 0 ? (
-                    <Ionicons name="trending-up" size={16} color="#4ADE80" style={{ marginLeft: 6 }} />
+                    <Ionicons
+                      name="trending-up"
+                      size={16}
+                      color="#4ADE80"
+                      style={{ marginLeft: 6 }}
+                    />
                   ) : null}
                 </View>
               </View>
@@ -359,7 +393,9 @@ export default function RouteDetailsScreen() {
                 </View>
                 <View style={styles.toggleTextContainer}>
                   <Text style={styles.toggleTitle}>Female Only Match</Text>
-                  <Text style={styles.toggleSubtitle}>Prefer sharing with female students</Text>
+                  <Text style={styles.toggleSubtitle}>
+                    Prefer sharing with female students
+                  </Text>
                 </View>
                 <Switch
                   value={femaleOnly}
@@ -374,54 +410,72 @@ export default function RouteDetailsScreen() {
           {/* STUDENTS IN QUEUE */}
           <View style={styles.queueSection}>
             <Text style={styles.sectionHeading}>Students in Queue</Text>
-            
+
             <View style={styles.queueList}>
               {queueLoading ? (
-                <ActivityIndicator color="#8B5CF6" size="small" style={{ marginVertical: 10 }} />
+                <ActivityIndicator
+                  color="#8B5CF6"
+                  size="small"
+                  style={{ marginVertical: 10 }}
+                />
               ) : null}
-              
-              {!queueLoading && queue.length > 0 ? (
-                queue.map((entry) => {
-                  const member = typeof entry.userId === "string" ? null : entry.userId;
-                  const memberId = member?._id || (typeof entry.userId === "string" ? entry.userId : "default");
-                  const avatarSource = getAvatarForId(memberId);
 
-                  return (
-                    <View key={entry._id} style={styles.queueItemCard}>
-                      <View style={styles.queueItemLeft}>
-                        <Image source={avatarSource} style={styles.avatarImage} />
-                        <View>
-                          <Text style={styles.studentName}>{member?.name ?? "Student"}</Text>
-                          <Text style={styles.studentDetail}>{member?.usn || "Member"}</Text>
+              {!queueLoading && queue.length > 0
+                ? queue.map((entry) => {
+                    const member =
+                      typeof entry.userId === "string" ? null : entry.userId;
+                    const memberId =
+                      member?._id ||
+                      (typeof entry.userId === "string"
+                        ? entry.userId
+                        : "default");
+                    const avatarSource = getAvatarForId(memberId);
+
+                    return (
+                      <View key={entry._id} style={styles.queueItemCard}>
+                        <View style={styles.queueItemLeft}>
+                          <Image
+                            source={avatarSource}
+                            style={styles.avatarImage}
+                          />
+                          <View>
+                            <Text style={styles.studentName}>
+                              {member?.name ?? "Student"}
+                            </Text>
+                            <Text style={styles.studentDetail}>
+                              {member?.usn || "Member"}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.joinedBadge}>
+                          <Text style={styles.joinedText}>In Queue</Text>
                         </View>
                       </View>
-                      <View style={styles.joinedBadge}>
-                        <Text style={styles.joinedText}>In Queue</Text>
-                      </View>
-                    </View>
-                  );
-                })
-              ) : null}
+                    );
+                  })
+                : null}
 
               {/* EMPTY SLOTS */}
-              {!queueLoading ? (
-                Array.from({ length: emptySlots }).map((_, idx) => (
-                  <View key={`empty-${idx}`} style={styles.emptySlotCard}>
-                    <View style={styles.emptySlotIcon}>
-                      <Ionicons name="person-add" size={16} color="#52525B" />
+              {!queueLoading
+                ? Array.from({ length: emptySlots }).map((_, idx) => (
+                    <View key={`empty-${idx}`} style={styles.emptySlotCard}>
+                      <View style={styles.emptySlotIcon}>
+                        <Ionicons name="person-add" size={16} color="#52525B" />
+                      </View>
+                      <View>
+                        <Text style={styles.emptySlotTitle}>
+                          Available Slot
+                        </Text>
+                        <Text style={styles.emptySlotText}>Join to fill</Text>
+                      </View>
                     </View>
-                    <View>
-                      <Text style={styles.emptySlotTitle}>Available Slot</Text>
-                      <Text style={styles.emptySlotText}>Join to fill</Text>
-                    </View>
-                  </View>
-                ))
-              ) : null}
+                  ))
+                : null}
             </View>
           </View>
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          
+
           <View style={{ height: 100 }} />
         </ScrollView>
 
@@ -429,23 +483,28 @@ export default function RouteDetailsScreen() {
         <View style={styles.bottomBar}>
           <Pressable
             accessibilityRole="button"
-            onPress={isInQueue ? handleLeave : handleJoin}
-            disabled={actionLoading}
-            style={[styles.actionButton, isInQueue && styles.actionButtonLeave]}
+            onPress={!isInQueue ? handleJoin : undefined}
+            disabled={actionLoading || isInQueue}
+            style={[styles.actionButton, isInQueue && { opacity: 0.6 }]}
           >
             <Text style={styles.actionButtonText}>
               {actionLoading
                 ? "Working..."
                 : isInQueue
-                  ? "Leave Queue"
+                  ? "Already Joined"
                   : "Join Queue"}
             </Text>
-            {!actionLoading && !isInQueue ? (
-              <Ionicons name="arrow-forward" size={20} color="#fff" style={{ marginLeft: 8 }} />
-            ) : null}
+
+            {!actionLoading && !isInQueue && (
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="#fff"
+                style={{ marginLeft: 8 }}
+              />
+            )}
           </Pressable>
         </View>
-
       </SafeAreaView>
     </View>
   );
