@@ -5,7 +5,7 @@ const { sendOTP } = require("../services/emailService");
 const generateToken = require("../utils/generateToken");
 
 const DEV_CONFIG = {
-  magicUsn: "SMARTRISHI", // Any designated testing USN
+  magicUsn: "1BM23EC672", // Any designated testing USN
   magicOtp: "111111", // The easy bypass code
   mockEmail: "rishicool@bmsce.ac.in", // Fallback mock email for testing
 };

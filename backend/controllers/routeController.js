@@ -126,17 +126,26 @@ exports.joinRoute = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid route ID" });
     }
 
-    const existing = await Queue.findOne({
-      routeId,
-      userId: req.userId,
-    });
-
-    if (existing) {
+    // Check if user is already in a queue for ANY route
+    const queueEntry = await Queue.findOne({ userId: req.userId });
+    if (queueEntry) {
       return res.status(400).json({
-        message: "Already joined a slot",
+        message:
+          "You are already in a queue for another route. Leave that queue first.",
       });
     }
-    if (existing) return res.status(400).json({ message: "Already in queue" });
+
+    // Check if user is already in a group
+    const Group = require("../models/Group");
+    const userGroup = await Group.findOne({
+      members: req.userId,
+      status: { $in: ["FORMED", "STARTED"] },
+    });
+    if (userGroup) {
+      return res.status(400).json({
+        message: "You are already in a group. Leave your group first.",
+      });
+    }
 
     const route = await Route.findById(routeId);
     if (!route) return res.status(404).json({ message: "Route not found" });

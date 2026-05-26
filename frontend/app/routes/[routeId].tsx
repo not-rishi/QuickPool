@@ -20,7 +20,7 @@ import { useAuth } from "@/context/auth-context";
 import type { QueueEntry } from "@/types/queue";
 import type { RouteTimeSlot, TravelRoute } from "@/types/route";
 
-const MAP_PLACEHOLDER = require("@/assets/images/map-placeholder.png");
+const MAP_PLACEHOLDER = require("@/assets/animated/map_draw.gif");
 
 const AVATARS: Record<number, any> = {
   1: require("@/assets/images/avatars/avatar1.png"),
@@ -74,6 +74,8 @@ export default function RouteDetailsScreen() {
   const [queueLoading, setQueueLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userGroup, setUserGroup] = useState<any>(null);
+  const [checkingGroup, setCheckingGroup] = useState(false);
 
   const loadRoute = useCallback(async () => {
     if (!token || !routeId) return;
@@ -103,44 +105,65 @@ export default function RouteDetailsScreen() {
   }, [routeId, token]);
 
   const loadQueue = useCallback(
-    async (slotId?: string | null) => {
+    async (slotId?: string | null, silent = false) => {
       if (!token || !routeId) return;
-      setQueueLoading(true);
+
+      if (!silent) setQueueLoading(true);
+
       try {
         const queueUrl = slotId
           ? `${API_ENDPOINTS.routes.queue(routeId)}?slotId=${encodeURIComponent(slotId)}`
           : API_ENDPOINTS.routes.queue(routeId);
+
         const response = await fetch(queueUrl, {
-          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
-            Accept: "application/json",
           },
         });
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.message || "Failed to load queue");
-        }
+        const data = await response.json();
 
-        const data = (await response.json()) as QueueEntry[];
-        setQueue(data);
-      } catch (err) {
-        setQueue([]);
+        // update only if changed
+        setQueue((prev) =>
+          JSON.stringify(prev) === JSON.stringify(data) ? prev : data,
+        );
       } finally {
-        setQueueLoading(false);
+        if (!silent) setQueueLoading(false);
       }
     },
     [routeId, token],
   );
 
+  const loadUserGroup = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(API_ENDPOINTS.groups.current, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const groupData = await response.json();
+        setUserGroup(groupData);
+      } else {
+        setUserGroup(null);
+      }
+    } catch (err) {
+      setUserGroup(null);
+    }
+  }, [token]);
+
   useEffect(() => {
     (async () => {
       setLoading(true);
       await loadRoute();
+      await loadUserGroup();
       setLoading(false);
     })();
-  }, [loadRoute]);
+  }, [loadRoute, loadUserGroup]);
 
   useEffect(() => {
     loadQueue(selectedSlotId);
@@ -150,7 +173,18 @@ export default function RouteDetailsScreen() {
     useCallback(() => {
       loadRoute();
       loadQueue(selectedSlotId);
-    }, [loadRoute, loadQueue, selectedSlotId]),
+      loadUserGroup();
+
+      // Poll for queue and group updates every 2.5 seconds
+      const pollInterval = setInterval(() => {
+        loadQueue(selectedSlotId, true);
+        loadUserGroup();
+      }, 2500);
+
+      return () => {
+        clearInterval(pollInterval);
+      };
+    }, [loadRoute, loadQueue, selectedSlotId, loadUserGroup]),
   );
 
   const queueUserIds = useMemo(() => {
@@ -165,6 +199,16 @@ export default function RouteDetailsScreen() {
     if (!user?._id) return false;
     return queueUserIds.includes(user._id);
   }, [queueUserIds, user?._id]);
+
+  const isInGroup = useMemo(() => {
+    if (!user?._id || !userGroup) return false;
+    return userGroup.members?.some((m: any) =>
+      typeof m === "string" ? m === user._id : m._id === user._id,
+    );
+  }, [userGroup, user?._id]);
+
+  const canJoinQueue = !isInQueue && !isInGroup;
+  const buttonDisabled = actionLoading || !canJoinQueue;
 
   const canPickFemaleOnly = user?.gender === "Female";
 
@@ -283,19 +327,25 @@ export default function RouteDetailsScreen() {
               style={styles.mapImage}
               resizeMode="cover"
             />
-            <View style={styles.mapOverlay}>
+            {/* Restructured info box below the map inside the same container */}
+            <View style={styles.mapInfoContainer}>
               <View style={styles.locationRow}>
                 <View style={[styles.dot, { backgroundColor: "#A78BFA" }]} />
-                <View>
+                <View style={styles.locationTextWrapper}>
                   <Text style={styles.locationLabel}>Origin</Text>
-                  <Text style={styles.locationText}>{route.start}</Text>
+                  <Text style={styles.locationText} numberOfLines={2}>
+                    {route.start}
+                  </Text>
                 </View>
               </View>
+
               <View style={styles.locationRow}>
                 <View style={[styles.dot, { backgroundColor: "#4ADE80" }]} />
-                <View>
+                <View style={styles.locationTextWrapper}>
                   <Text style={styles.locationLabel}>Destination</Text>
-                  <Text style={styles.locationText}>{route.destination}</Text>
+                  <Text style={styles.locationText} numberOfLines={2}>
+                    {route.destination}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -483,19 +533,24 @@ export default function RouteDetailsScreen() {
         <View style={styles.bottomBar}>
           <Pressable
             accessibilityRole="button"
-            onPress={!isInQueue ? handleJoin : undefined}
-            disabled={actionLoading || isInQueue}
-            style={[styles.actionButton, isInQueue && { opacity: 0.6 }]}
+            onPress={canJoinQueue && !actionLoading ? handleJoin : undefined}
+            disabled={buttonDisabled}
+            style={[
+              styles.actionButton,
+              buttonDisabled && styles.actionButtonDisabled,
+            ]}
           >
             <Text style={styles.actionButtonText}>
               {actionLoading
                 ? "Working..."
-                : isInQueue
-                  ? "Already Joined"
-                  : "Join Queue"}
+                : isInGroup
+                  ? "In Group - Leave to Join"
+                  : isInQueue
+                    ? "In Queue"
+                    : "Join Queue"}
             </Text>
 
-            {!actionLoading && !isInQueue && (
+            {!actionLoading && canJoinQueue && (
               <Ionicons
                 name="arrow-forward"
                 size={20}
@@ -543,39 +598,40 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     gap: 16,
   },
-  mapCard: {
+ mapCard: {
     borderRadius: 24,
     overflow: "hidden",
     backgroundColor: "#171717",
     borderWidth: 1,
     borderColor: "#262626",
-    height: 160,
-    position: "relative",
+    // Removed fixed height: 160 to allow card to expand safely
   },
   mapImage: {
     width: "100%",
-    height: "100%",
+    height: 130, // Keeps the map look consistent at the top
     opacity: 0.6,
   },
-  mapOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+  mapInfoContainer: {
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
-    backgroundColor: "rgba(23, 23, 23, 0.8)",
+    backgroundColor: "#171717",
+    gap: 16, // Adds breathing room between origin and destination
   },
   locationRow: {
+    flex: 1, // Ensures both sides split the screen equally (50/50)
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start", // Aligns nicely if text wraps to 2 lines
     gap: 8,
+  },
+  locationTextWrapper: {
+    flex: 1, // Forces text container to fill space and respect bounds
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+    marginTop: 4, // Centers the dot with the first line of text
   },
   locationLabel: {
     fontSize: 11,
@@ -588,6 +644,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
     marginTop: 2,
+    flexWrap: "wrap", // Safely forces text wrapping
   },
   slotsContainer: {
     gap: 12,
@@ -805,6 +862,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#8B5CF6",
+  },
+  actionButtonDisabled: {
+    backgroundColor: "#52525B",
+    opacity: 0.6,
   },
   actionButtonLeave: {
     backgroundColor: "#27272A",
