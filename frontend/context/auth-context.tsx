@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Platform } from "react-native";
 
 import { AUTH_STORAGE_KEYS } from "@/constants/api";
 import { logout as logoutApi } from "@/services/auth";
@@ -27,15 +28,47 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// 🔒 Dynamic Platform-Agnostic Storage Wrappers
+const getStorageItem = async (key: string): Promise<string | null> => {
+  if (Platform.OS === "web") {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(key);
+    }
+    return null;
+  }
+  return await SecureStore.getItemAsync(key);
+};
+
+const setStorageItem = async (key: string, value: string): Promise<void> => {
+  if (Platform.OS === "web") {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(key, value);
+    }
+    return;
+  }
+  await SecureStore.setItemAsync(key, value);
+};
+
+const deleteStorageItem = async (key: string): Promise<void> => {
+  if (Platform.OS === "web") {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(key);
+    }
+    return;
+  }
+  await SecureStore.deleteItemAsync(key);
+};
+
 async function readStoredSession(): Promise<{
   token: string | null;
   usn: string | null;
   user: User | null;
 }> {
+  // Uses our platform wrapper to fetch tokens without throwing native method exceptions
   const [token, usn, userJson] = await Promise.all([
-    SecureStore.getItemAsync(AUTH_STORAGE_KEYS.token),
-    SecureStore.getItemAsync(AUTH_STORAGE_KEYS.usn),
-    SecureStore.getItemAsync(AUTH_STORAGE_KEYS.user),
+    getStorageItem(AUTH_STORAGE_KEYS.token),
+    getStorageItem(AUTH_STORAGE_KEYS.usn),
+    getStorageItem(AUTH_STORAGE_KEYS.user),
   ]);
 
   let user: User | null = null;
@@ -82,12 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(
     async (nextToken: string, nextUsn: string, nextUser: User) => {
       await Promise.all([
-        SecureStore.setItemAsync(AUTH_STORAGE_KEYS.token, nextToken),
-        SecureStore.setItemAsync(AUTH_STORAGE_KEYS.usn, nextUsn),
-        SecureStore.setItemAsync(
-          AUTH_STORAGE_KEYS.user,
-          JSON.stringify(nextUser),
-        ),
+        setStorageItem(AUTH_STORAGE_KEYS.token, nextToken),
+        setStorageItem(AUTH_STORAGE_KEYS.usn, nextUsn),
+        setStorageItem(AUTH_STORAGE_KEYS.user, JSON.stringify(nextUser)),
       ]);
       setToken(nextToken);
       setUsn(nextUsn);
@@ -102,13 +132,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         await logoutApi(token);
       } catch {
-        // JWT logout is client-side; ignore network errors
+        // Client-side fallback: ignore network discrepancies during logouts
       }
     }
     await Promise.all([
-      SecureStore.deleteItemAsync(AUTH_STORAGE_KEYS.token),
-      SecureStore.deleteItemAsync(AUTH_STORAGE_KEYS.usn),
-      SecureStore.deleteItemAsync(AUTH_STORAGE_KEYS.user),
+      deleteStorageItem(AUTH_STORAGE_KEYS.token),
+      deleteStorageItem(AUTH_STORAGE_KEYS.usn),
+      deleteStorageItem(AUTH_STORAGE_KEYS.user),
     ]);
     setToken(null);
     setUsn(null);
