@@ -78,6 +78,7 @@ export default function HomeScreen() {
         }
 
         const data = await response.json();
+        console.log("Raw Response Array:", data);
         setRoutes(data);
       } catch (err: any) {
         setError(err.message || "Failed to connect to the server.");
