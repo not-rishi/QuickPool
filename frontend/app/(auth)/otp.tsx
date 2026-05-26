@@ -66,20 +66,22 @@ export default function OtpScreen() {
       }
 
       const { token, user } = await response.json();
+      console.log(
+        "📩 [OTP:handleVerify] API verified OTP successfully. Triggering signIn()...",
+      );
+
       await signIn(token, usn, user);
+      console.log(
+        "⏱️ [OTP:handleVerify] Scheduling router switch via setTimeout...",
+      );
 
       // ⚙️ DEVELOPMENT INTERCEPT
-      // If we used the magic bypass, don't go to the broken tabs yet!
       if (__DEV__ && usn === "RISHISMART") {
-        setOtp(""); // clear input
-        Alert.alert(
-          "✨ Dev Success!",
-          "The Magic OTP worked perfectly! Backend verified the sandbox user. (Navigation to /(tabs) paused while you build the home screen).",
-        );
+        setOtp("");
+        Alert.alert("✨ Dev Success!", "The Magic OTP worked perfectly!");
         return;
       }
 
-      // Standard routing for real accounts
       router.replace("/(tabs)");
     } catch (err: any) {
       const message = err.message || "Verification failed. Please try again.";
@@ -278,9 +280,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 24,
     fontWeight: "700",
-    backgroundColor:"#00000065",
-    color : "#b8b8b8",
-    borderColor:"#ffffff3a",
+    backgroundColor: "#00000065",
+    color: "#b8b8b8",
+    borderColor: "#ffffff3a",
   },
   buttonContainer: {
     gap: 16,
@@ -303,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-   loginButton: {
+  loginButton: {
     backgroundColor: "#a78bfa",
     // You can also add shadows or specific purple shades here
     shadowColor: "#a78bfa",

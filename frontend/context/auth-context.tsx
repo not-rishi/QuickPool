@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 import {
   createContext,
   useCallback,
@@ -7,11 +7,11 @@ import {
   useMemo,
   useState,
   type ReactNode,
-} from 'react';
+} from "react";
 
-import { AUTH_STORAGE_KEYS } from '@/constants/api';
-import { logout as logoutApi } from '@/services/auth';
-import type { User } from '@/types/user';
+import { AUTH_STORAGE_KEYS } from "@/constants/api";
+import { logout as logoutApi } from "@/services/auth";
+import type { User } from "@/types/user";
 
 type AuthContextValue = {
   token: string | null;
@@ -58,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log("🔑 token:", token);
+    console.log("👤 user:", user?.name);
+  }, [token, user]);
+
+  useEffect(() => {
     let mounted = true;
 
     (async () => {
@@ -74,17 +79,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signIn = useCallback(async (nextToken: string, nextUsn: string, nextUser: User) => {
-    await Promise.all([
-      SecureStore.setItemAsync(AUTH_STORAGE_KEYS.token, nextToken),
-      SecureStore.setItemAsync(AUTH_STORAGE_KEYS.usn, nextUsn),
-      SecureStore.setItemAsync(AUTH_STORAGE_KEYS.user, JSON.stringify(nextUser)),
-    ]);
-    setToken(nextToken);
-    setUsn(nextUsn);
-    setUser(nextUser);
-    setPendingUsn(null);
-  }, []);
+  const signIn = useCallback(
+    async (nextToken: string, nextUsn: string, nextUser: User) => {
+      await Promise.all([
+        SecureStore.setItemAsync(AUTH_STORAGE_KEYS.token, nextToken),
+        SecureStore.setItemAsync(AUTH_STORAGE_KEYS.usn, nextUsn),
+        SecureStore.setItemAsync(
+          AUTH_STORAGE_KEYS.user,
+          JSON.stringify(nextUser),
+        ),
+      ]);
+      setToken(nextToken);
+      setUsn(nextUsn);
+      setUser(nextUser);
+      setPendingUsn(null);
+    },
+    [],
+  );
 
   const signOut = useCallback(async () => {
     if (token) {
@@ -126,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 }

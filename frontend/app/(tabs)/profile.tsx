@@ -85,7 +85,7 @@ export default function ProfileScreen() {
           <ImageBackground 
             source={ANIMATED_BANNER} 
             style={styles.mapBannerImage}
-            imageStyle={{ opacity: 0.35 }}
+            imageStyle={{ opacity: 0.4 }}
             resizeMode="cover"
           >
             <View style={styles.mapBannerOverlay}>
@@ -128,6 +128,8 @@ export default function ProfileScreen() {
           variant="secondary"
           onPress={handleLogout}
           style={styles.logout}
+          
+          textStyle={{ color: "#fc286eba" }}
         />
       </SafeAreaView>
     </View>
@@ -193,7 +195,7 @@ const styles = StyleSheet.create({
   },
   mapBannerImage: {
     width: "100%",
-    height: 90,
+    height: 120,
     justifyContent: "center",
   },
   mapBannerOverlay: {
@@ -304,10 +306,10 @@ const styles = StyleSheet.create({
   },
   logout: {
     marginTop: "auto",
-    marginBottom: 20,
+    marginBottom: 150,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.05)",
-    backgroundColor: "#1F1F23",
+    backgroundColor: "#1f1f2377",
   },
 });

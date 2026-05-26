@@ -154,7 +154,7 @@ export default function HistoryScreen() {
                       <Text style={styles.mapBannerSubtitle}>Total verified trip files logged: {history.length}</Text>
                     </View>
                     <View style={styles.mapBannerIconBox}>
-                      <Ionicons name="book" size={18} color="#f4ecbf" />
+                      <Ionicons name="document" size={18} color="#f4ecbf" />
                     </View>
                   </View>
                 </ImageBackground>
@@ -287,11 +287,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.06)",
-    backgroundColor: "rgba(23, 23, 26, 0.4)",
+    backgroundColor: "rgb(0, 0, 0)",
   },
   mapBannerImage: {
     width: "100%",
-    height: 120,
+    height: 150,
     justifyContent: "center",
   },
   mapBannerOverlay: {
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   },
   mapBannerSubtitle: {
     fontSize: 12,
-    color: "#71717A",
+    color: "#ffffff",
     marginTop: 4,
   },
   mapBannerIconBox: {

@@ -368,7 +368,7 @@ export default function GroupScreen() {
             <ImageBackground
               source={ANIMATED_BANNER}
               style={styles.mapBannerImage}
-              imageStyle={{ opacity: 0.2 }}
+              imageStyle={{ opacity: 0.4 }}
               resizeMode="cover"
             >
               <View style={styles.mapBannerOverlay}>
@@ -654,6 +654,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
+    paddingBottom: 120, // Increased to 120 to ensure 100px clear gap
   },
   glassHeaderCard: {
     backgroundColor: "rgba(23, 23, 23, 0.45)",
@@ -941,7 +942,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#1F1F23",
-    backgroundColor: "#121214",
+    backgroundColor: "#000000",
     marginBottom: 24,
   },
   mapBannerImage: {
@@ -955,7 +956,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
   },
- mapBannerTitle: {
+  mapBannerTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",

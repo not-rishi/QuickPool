@@ -1,6 +1,6 @@
 // app/home.tsx
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -47,6 +47,12 @@ const getAvatarForId = (id: string = "") => {
 
 export default function HomeScreen() {
   const { token, user } = useAuth();
+  // 🪵 TRACE LOG: Fires on every single render pass of the screen
+  console.log("🏠 [HomeScreen:Render] Current State variables:", {
+    hasToken: !!token,
+    hasUser: !!user,
+    userName: user?.name ?? "null",
+  });
   const [routes, setRoutes] = useState<TravelRoute[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,15 +60,21 @@ export default function HomeScreen() {
 
   const loadRoutes = useCallback(
     async (isBackgroundRefresh = false) => {
+      // 1. If no token, turn off loading immediately and exit
       if (!token) {
+        console.log("⚠️ [HomeScreen:loadRoutes] Aborted: Token is missing.");
         setLoading(false);
         return;
       }
 
+      // 2. Set up loading states for standard fetches
       if (!isBackgroundRefresh) setLoading(true);
       setError(null);
 
       try {
+        console.log(
+          "🌐 [HomeScreen:loadRoutes] Initiating fetch request to central endpoint...",
+        );
         const response = await fetch(API_ENDPOINTS.routes.base, {
           method: "GET",
           headers: {
@@ -73,26 +85,55 @@ export default function HomeScreen() {
         });
 
         if (!response.ok) {
-          const errData = await response.json();
+          const errData = await response.json().catch(() => ({}));
           throw new Error(errData.message || "Failed to load routes");
         }
 
-        const data = await response.json();
-        console.log("Raw Response Array:", data);
-        setRoutes(data);
+        const data: TravelRoute[] = await response.json();
+
+        const now = Date.now();
+        const activeRoutes = data.filter((route) => {
+          if (route.routeType === "QUICK_ROUTE") return true;
+          if (!route.timeSlots || route.timeSlots.length === 0) return true;
+          if (!route.timeSlots || route.timeSlots.length === 0) return true;
+          const latestEndTime = Math.max(
+            ...route.timeSlots.map((slot) => new Date(slot.endTime).getTime()),
+          );
+          return latestEndTime > now;
+        });
+
+        setRoutes(activeRoutes);
       } catch (err: any) {
+        console.error("Fetch error:", err);
         setError(err.message || "Failed to connect to the server.");
       } finally {
-        if (!isBackgroundRefresh) setLoading(false);
+        // 3. ALWAYS kill the main loader when done, no matter what
+        setLoading(false);
       }
     },
-    [token],
+    [token], // Keep this dependency array strict
   );
 
+  // 1. Standard useEffect: Reacts instantly the millisecond the token arrives after login
+  useEffect(() => {
+    console.log("🔄 [HomeScreen:useEffect] Token dependency changed:", {
+      tokenExists: !!token,
+    });
+    if (token) {
+      loadRoutes();
+    } else {
+      setLoading(false);
+    }
+  }, [token, loadRoutes]);
+
+  // 2. useFocusEffect: Handles silent background refreshes when navigating between tabs
   useFocusEffect(
     useCallback(() => {
-      loadRoutes();
-    }, [loadRoutes]),
+      // Check !loading so it doesn't trigger a duplicate fetch right after the useEffect runs
+      if (token && !loading) {
+        loadRoutes(true); // true = background refresh (hides the big loader)
+      }
+    }, [token, loading, loadRoutes]),
   );
 
   const handleCreateRoute = useCallback(() => {
@@ -132,7 +173,7 @@ export default function HomeScreen() {
         <ImageBackground
           source={ANIMATED_BANNER}
           style={styles.mapBannerImage}
-          imageStyle={{ opacity: 0.4 }}
+          imageStyle={{ opacity: 0.35 }}
           resizeMode="cover"
         >
           <View style={styles.mapBannerOverlay}>
@@ -309,7 +350,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#1F1F23",
-    backgroundColor: "#121214",
+    backgroundColor: "#000000",
     marginBottom: 24,
   },
   mapBannerImage: {
@@ -390,7 +431,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   list: {
-    paddingBottom: 40,
+    paddingBottom: 100, // Change this from 40 to 100 (or higher if you have a Tab Bar)
   },
   cardWrap: {
     paddingHorizontal: 20,
