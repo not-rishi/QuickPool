@@ -208,7 +208,8 @@ export default function RouteDetailsScreen() {
   }, [userGroup, user?._id]);
 
   const canJoinQueue = !isInQueue && !isInGroup;
-  const buttonDisabled = actionLoading || !canJoinQueue;
+  // If they are in a group or loading, disable the button (they must leave the group from the Group Screen)
+  const buttonDisabled = actionLoading || isInGroup;
 
   const canPickFemaleOnly = user?.gender === "Female";
 
@@ -533,10 +534,19 @@ export default function RouteDetailsScreen() {
         <View style={styles.bottomBar}>
           <Pressable
             accessibilityRole="button"
-            onPress={canJoinQueue && !actionLoading ? handleJoin : undefined}
+            onPress={
+              actionLoading
+                ? undefined
+                : isInQueue
+                  ? handleLeave
+                  : canJoinQueue
+                    ? handleJoin
+                    : undefined
+            }
             disabled={buttonDisabled}
             style={[
               styles.actionButton,
+              isInQueue && !actionLoading && styles.actionButtonLeave, // Uses your existing dark gray style
               buttonDisabled && styles.actionButtonDisabled,
             ]}
           >
@@ -546,13 +556,21 @@ export default function RouteDetailsScreen() {
                 : isInGroup
                   ? "In Group - Leave to Join"
                   : isInQueue
-                    ? "In Queue"
+                    ? "Leave Queue" // Updated text
                     : "Join Queue"}
             </Text>
 
             {!actionLoading && canJoinQueue && (
               <Ionicons
                 name="arrow-forward"
+                size={20}
+                color="#fff"
+                style={{ marginLeft: 8 }}
+              />
+            )}
+            {!actionLoading && isInQueue && (
+              <Ionicons
+                name="exit-outline"
                 size={20}
                 color="#fff"
                 style={{ marginLeft: 8 }}
@@ -598,7 +616,7 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     gap: 16,
   },
- mapCard: {
+  mapCard: {
     borderRadius: 24,
     overflow: "hidden",
     backgroundColor: "#171717",
