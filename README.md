@@ -222,7 +222,7 @@ Nodemailer
 
 <div align="center">
 
-<img src="./docs/architecture-diagram" width="500"/>
+<img src="./docs/architecture-diagram.png" width="500"/>
 
 </div>
 
@@ -253,3 +253,15 @@ cd frontend
 npm install
 npx expo start
 ```
+
+<div align="center">
+
+<a href="./docs/architecture.md">
+<img src="https://img.shields.io/badge/Architecture-a78bfa?style=for-the-badge">
+</a>
+
+<a href="./docs/api-contract.md">
+<img src="https://img.shields.io/badge/API-a78bfa?style=for-the-badge">
+</a>
+
+</div>
