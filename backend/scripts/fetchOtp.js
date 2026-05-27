@@ -16,7 +16,6 @@ if (!usn) {
       console.log("NO_RECORD");
       process.exit(0);
     }
-    console.log(record.otp);
     process.exit(0);
   } catch (e) {
     console.error("ERR", e.message || e);

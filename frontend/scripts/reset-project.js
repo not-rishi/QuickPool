@@ -50,7 +50,7 @@ const moveDirectories = async (userInput) => {
     if (userInput === "y") {
       
       await fs.promises.mkdir(exampleDirPath, { recursive: true });
-      console.log(`📁 /${exampleDir} directory created.`);
+      // console.log(`📁 /${exampleDir} directory created.`);
     }
 
     
@@ -60,30 +60,30 @@ const moveDirectories = async (userInput) => {
         if (userInput === "y") {
           const newDirPath = path.join(root, exampleDir, dir);
           await fs.promises.rename(oldDirPath, newDirPath);
-          console.log(`➡️ /${dir} moved to /${exampleDir}/${dir}.`);
+          // console.log(`➡️ /${dir} moved to /${exampleDir}/${dir}.`);
         } else {
           await fs.promises.rm(oldDirPath, { recursive: true, force: true });
-          console.log(`❌ /${dir} deleted.`);
+          // console.log(`❌ /${dir} deleted.`);
         }
       } else {
-        console.log(`➡️ /${dir} does not exist, skipping.`);
+        // console.log(`➡️ /${dir} does not exist, skipping.`);
       }
     }
 
     
     const newAppDirPath = path.join(root, newAppDir);
     await fs.promises.mkdir(newAppDirPath, { recursive: true });
-    console.log("\n📁 New /app directory created.");
+    // console.log("\n📁 New /app directory created.");
 
     
     const indexPath = path.join(newAppDirPath, "index.tsx");
     await fs.promises.writeFile(indexPath, indexContent);
-    console.log("📄 app/index.tsx created.");
+    // console.log("📄 app/index.tsx created.");
 
     
     const layoutPath = path.join(newAppDirPath, "_layout.tsx");
     await fs.promises.writeFile(layoutPath, layoutContent);
-    console.log("📄 app/_layout.tsx created.");
+    // console.log("📄 app/_layout.tsx created.");
 
     console.log("\n✅ Project reset complete. Next steps:");
     console.log(

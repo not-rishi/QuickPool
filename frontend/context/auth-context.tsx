@@ -89,8 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("🔑 token:", token);
-    console.log("👤 user:", user?.name);
+    // console.log("🔑 token:", token);
+    // console.log("👤 user:", user?.name);
   }, [token, user]);
 
   useEffect(() => {

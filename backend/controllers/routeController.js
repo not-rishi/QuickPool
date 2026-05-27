@@ -64,8 +64,6 @@ exports.getRouteById = async (req, res, next) => {
   try {
     const { routeId } = req.params;
 
-    console.log("routeId:", routeId);
-
     if (!mongoose.Types.ObjectId.isValid(routeId)) {
       return res.status(400).json({
         message: "Invalid route ID",

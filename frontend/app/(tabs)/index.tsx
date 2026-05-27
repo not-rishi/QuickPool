@@ -47,11 +47,11 @@ const getAvatarForId = (id: string = "") => {
 export default function HomeScreen() {
   const { token, user } = useAuth();
 
-  console.log("🏠 [HomeScreen:Render] Current State variables:", {
-    hasToken: !!token,
-    hasUser: !!user,
-    userName: user?.name ?? "null",
-  });
+  // console.log("🏠 [HomeScreen:Render] Current State variables:", {
+  //   hasToken: !!token,
+  //   hasUser: !!user,
+  //   userName: user?.name ?? "null",
+  // });
   const [routes, setRoutes] = useState<TravelRoute[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -69,9 +69,9 @@ export default function HomeScreen() {
       setError(null);
 
       try {
-        console.log(
-          "🌐 [HomeScreen:loadRoutes] Initiating fetch request to central endpoint...",
-        );
+        // console.log(
+        //   "🌐 [HomeScreen:loadRoutes] Initiating fetch request to central endpoint...",
+        // );
         const response = await fetch(API_ENDPOINTS.routes.base, {
           method: "GET",
           headers: {
@@ -111,9 +111,9 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
-    console.log("🔄 [HomeScreen:useEffect] Token dependency changed:", {
-      tokenExists: !!token,
-    });
+    // console.log("🔄 [HomeScreen:useEffect] Token dependency changed:", {
+    //   tokenExists: !!token,
+    // });
     if (token) {
       loadRoutes();
     } else {
