@@ -15,8 +15,9 @@ Intelligent route matching and group-based travel with safety systems, reputatio
 <img src="https://img.shields.io/badge/React%20Native-Expo-a78bfa?style=for-the-badge">
 <img src="https://img.shields.io/badge/Node.js-Express-a78bfa?style=for-the-badge">
 <img src="https://img.shields.io/badge/MongoDB-Mongoose-a78bfa?style=for-the-badge">
-<img src="https://img.shields.io/badge/TypeScript-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/Frontend-TypeScript-a78bfa?style=for-the-badge">
 <img src="https://img.shields.io/badge/JWT-Authentication-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/LoC-23,166-a78bfa?style=for-the-badge">
 
 <br><br>
 
@@ -62,45 +63,65 @@ Browse available ride routes, discover matching users and create personalized tr
 
 ---
 
+### Routes
+
+<div align="center">
+
+<img src="./docs/screenshots/route_top.jpg" height="500"/>
+<img src="./docs/screenshots/route_bottom.jpg" height="500"/>
+
+<br><br>
+
+Choose your route and your time slot
+
+</div>
+
+---
+
 ### Groups
 
 <div align="center">
 
 <img src="./docs/screenshots/group.png" height="500"/>
+<img src="./docs/screenshots/group-bottom.png" height="500"/>
 
 <br><br>
 
-Manage ride groups, monitor members, request swaps and handle ride participation.
+Manage ride groups, send panic alerts, monitor members, request swaps and handle ride participation.
 
 </div>
 
 ---
 
-### History
+### History & Profile
 
 <div align="center">
 
 <img src="./docs/screenshots/history.jpg" height="500"/>
+<img src="./docs/screenshots/profile.jpg" height="500"/>
 
 <br><br>
 
 View previous rides, track participants and maintain ride activity records.
+Manage user information, reputation score and account details.
 
 </div>
 
 ---
 
-### Profile
+### Admin Panel
 
 <div align="center">
 
-<img src="./docs/screenshots/profile.jpg" height="500"/>
+<img src="./docs/screenshots/admin_panel.png" width="1000"/>
+<img src="./docs/screenshots/admin-panel-alert.gif" width="1000"/>
 
 <br><br>
 
-Manage user information, reputation score and account details.
+Monitor Routes, get panic alerts and act directly!
 
 </div>
+
 ---
 
 ## Overview
@@ -199,15 +220,12 @@ Nodemailer
 
 ## Architecture
 
-```txt
-Mobile App
-     ↓
-Express API
-     ↓
-Services Layer
-     ↓
-MongoDB
-```
+
+<div align="center">
+
+<img src="./docs/architecture-diagram.png" width="500"/>
+
+</div>
 
 ---
 
@@ -237,23 +255,14 @@ npm install
 npx expo start
 ```
 
----
-
-## API
-
-```txt
-/ api/auth
-/ api/users
-/ api/routes
-/ api/groups
-/ api/emergency
-/ api/admin
-```
-
----
-
 <div align="center">
 
-Built by Rishi
+<a href="./docs/architecture.md">
+<img src="https://img.shields.io/badge/Architecture-a78bfa?style=for-the-badge">
+</a>
+
+<a href="./docs/api-contract.md">
+<img src="https://img.shields.io/badge/API-a78bfa?style=for-the-badge">
+</a>
 
 </div>
