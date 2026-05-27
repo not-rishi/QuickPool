@@ -8,7 +8,6 @@ router.post("/system", auth, routeController.createQuickRoute);
 
 router.get("/", routeController.getRoutes);
 
-// Put fixed routes BEFORE :routeId routes
 router.get("/:routeId/queue", routeController.getQueue);
 router.post("/:routeId/join", auth, routeController.joinRoute);
 router.post("/:routeId/leave", auth, routeController.leaveRoute);

@@ -19,7 +19,7 @@ import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { normalizeOtp, OTP_LENGTH, OTP_REGEX } from "@/constants/validation";
 import { useAuth } from "@/context/auth-context";
-import { API_ENDPOINTS } from "@/config/api"; // Importing global endpoint config
+import { API_ENDPOINTS } from "@/config/api";
 
 export default function OtpScreen() {
   const params = useLocalSearchParams<{ usn?: string }>();
@@ -75,8 +75,7 @@ export default function OtpScreen() {
         "⏱️ [OTP:handleVerify] Scheduling router switch via setTimeout...",
       );
 
-      // ⚙️ DEVELOPMENT INTERCEPT
-      if (__DEV__ && usn === "RISHISMART") {
+      if (__DEV__ && usn === "1BM23EC672") {
         setOtp("");
         Alert.alert("✨ Dev Success!", "The Magic OTP worked perfectly!");
         return;
@@ -256,7 +255,7 @@ const styles = StyleSheet.create({
   },
   usnHallmark: {
     fontWeight: "700",
-    color: "#a78bfa", // Updated from #6366f1
+    color: "#a78bfa",
   },
   form: {
     gap: 24,
@@ -267,10 +266,10 @@ const styles = StyleSheet.create({
   elevatedLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#a78bfa", // Updated from #6366f1
+    color: "#a78bfa",
     textTransform: "uppercase",
     letterSpacing: 1.5,
-    textShadowColor: "rgba(167, 139, 250, 0.4)", // Updated shadow to match
+    textShadowColor: "rgba(167, 139, 250, 0.4)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     paddingLeft: 4,
@@ -295,7 +294,7 @@ const styles = StyleSheet.create({
   },
   resend: {
     textAlign: "center",
-    color: "#a78bfa", // Updated from #6366f1
+    color: "#a78bfa",
     fontWeight: "600",
     fontSize: 14,
   },
@@ -307,7 +306,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: "#a78bfa",
-    // You can also add shadows or specific purple shades here
+
     shadowColor: "#a78bfa",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

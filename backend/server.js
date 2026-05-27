@@ -8,17 +8,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Scheduler for quick routes
 const cron = require("node-cron");
 const {
   generateQuickRoutes,
   finalizeGroups,
 } = require("./services/matchingService");
 
-// Connect DB
 connectDB(process.env.MONGO_URI || "mongodb://localhost:27017/quickpool");
 
-// Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/routes", require("./routes/routeRoutes"));
@@ -33,13 +30,11 @@ app.listen(5000, "0.0.0.0", () => {
   console.log("Server broad-listening on port 5000");
 });
 
-// Schedule daily quick route regeneration at midnight
 try {
   cron.schedule("0 0 * * *", async () => {
     await generateQuickRoutes();
   });
 
-  // Schedule every minute: finalizes groups
   cron.schedule("* * * * *", async () => {
     await finalizeGroups();
   });

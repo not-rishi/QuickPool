@@ -5,7 +5,6 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        // Add styling to the tab bar
         tabBarStyle: {
           position: "absolute",
           bottom: 20,
@@ -13,13 +12,13 @@ export default function TabLayout() {
           right: 25,
           backgroundColor: "#000000b5",
 
-          borderWidth: 1, // add thin border
-          borderColor: "rgba(255,255,255,0.25)", // softer white
+          borderWidth: 1,
+          borderColor: "rgba(255,255,255,0.25)",
 
           borderRadius: 100,
           height: 65,
 
-          borderTopWidth: 1, // keep border visible (don't set to 0)
+          borderTopWidth: 1,
 
           paddingBottom: 5,
           paddingTop: 5,
@@ -35,9 +34,9 @@ export default function TabLayout() {
           justifyContent: "center",
           alignItems: "center",
         },
-        tabBarShowLabel: true, // (Optional) Set to true if you want to keep the text labels
-        tabBarActiveTintColor: "#a78bfa", // Color for the selected tab
-        tabBarInactiveTintColor: "#cfcfcf", // Color for unselected tabs
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: "#a78bfa",
+        tabBarInactiveTintColor: "#cfcfcf",
       }}
     >
       {/* ✅ CORRECT: Just use the 'name' that matches your filename, and 'options' for styling */}
@@ -46,8 +45,12 @@ export default function TabLayout() {
         options={{
           title: "Home",
           headerShown: false,
-           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "planet" : "planet-outline"} size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "planet" : "planet-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -58,7 +61,11 @@ export default function TabLayout() {
           title: "Group",
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />
+            <Ionicons
+              name={focused ? "people" : "people-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -68,8 +75,12 @@ export default function TabLayout() {
         options={{
           title: "History",
           headerShown: false,
-           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "document" : "document-outline"} size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "document" : "document-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -79,8 +90,12 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           headerShown: false,
-           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "person" : "person-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

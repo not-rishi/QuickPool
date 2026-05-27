@@ -1,4 +1,3 @@
-// app/history.tsx
 import { BlurView } from "expo-blur";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -105,12 +104,15 @@ export default function HistoryScreen() {
     setRefreshing(false);
   }, [loadHistory]);
 
-  // Derive current user avatar icon
   const currentUserAvatar = getAvatarForId(user?._id || user?.usn || "default");
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={BACKGROUND_IMAGE} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+      <ImageBackground
+        source={BACKGROUND_IMAGE}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
       <View style={styles.dimOverlay} />
 
       <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -132,7 +134,10 @@ export default function HistoryScreen() {
               {/* GLASS HEADER BLOCK WITH PERSONAL USER AVATAR */}
               <View style={styles.glassHeaderCard}>
                 <View style={styles.headerRow}>
-                  <Image source={currentUserAvatar} style={styles.headerAvatarImage} />
+                  <Image
+                    source={currentUserAvatar}
+                    style={styles.headerAvatarImage}
+                  />
                   <Text style={styles.headerTitle}>Ride History</Text>
                 </View>
                 <Text style={styles.subtitle}>
@@ -142,8 +147,8 @@ export default function HistoryScreen() {
 
               {/* FLOATING MAP LAYOUT BANNER */}
               <View style={styles.mapBannerCard}>
-                <ImageBackground 
-                  source={ANIMATED_BANNER} 
+                <ImageBackground
+                  source={ANIMATED_BANNER}
                   style={styles.mapBannerImage}
                   imageStyle={{ opacity: 0.35 }}
                   resizeMode="cover"
@@ -151,7 +156,9 @@ export default function HistoryScreen() {
                   <View style={styles.mapBannerOverlay}>
                     <View>
                       <Text style={styles.mapBannerTitle}>Commute Archive</Text>
-                      <Text style={styles.mapBannerSubtitle}>Total verified trip files logged: {history.length}</Text>
+                      <Text style={styles.mapBannerSubtitle}>
+                        Total verified trip files logged: {history.length}
+                      </Text>
                     </View>
                     <View style={styles.mapBannerIconBox}>
                       <Ionicons name="document" size={18} color="#f4ecbf" />
@@ -161,7 +168,7 @@ export default function HistoryScreen() {
               </View>
 
               {error ? <Text style={styles.error}>{error}</Text> : null}
-              
+
               {loading && !refreshing ? (
                 <ActivityIndicator
                   style={styles.loader}
@@ -179,7 +186,8 @@ export default function HistoryScreen() {
                 </View>
                 <Text style={styles.emptyTitle}>No rides yet</Text>
                 <Text style={styles.emptyText}>
-                  Your completed pooling transactions will appear here systematically.
+                  Your completed pooling transactions will appear here
+                  systematically.
                 </Text>
               </View>
             ) : null
@@ -190,13 +198,20 @@ export default function HistoryScreen() {
               <View style={styles.cardWrap}>
                 <View style={styles.card}>
                   <View style={styles.cardLeft}>
-                    <Image source={itemAvatarSource} style={styles.avatarImage} />
+                    <Image
+                      source={itemAvatarSource}
+                      style={styles.avatarImage}
+                    />
                     <View style={styles.cardInfo}>
                       <Text style={styles.routeTitle} numberOfLines={1}>
                         {getRouteLabel(item.routeId)}
                       </Text>
                       <View style={styles.metaRow}>
-                        <Ionicons name="calendar-outline" size={12} color="#71717A" />
+                        <Ionicons
+                          name="calendar-outline"
+                          size={12}
+                          color="#71717A"
+                        />
                         <Text style={styles.metaText}>
                           {item.rideDate
                             ? new Date(item.rideDate).toLocaleDateString([], {
@@ -213,7 +228,11 @@ export default function HistoryScreen() {
 
                   <View style={styles.badgeColumn}>
                     <View style={styles.groupSizeBadge}>
-                      <Ionicons name="people-outline" size={12} color="#E9D5FF" />
+                      <Ionicons
+                        name="people-outline"
+                        size={12}
+                        color="#E9D5FF"
+                      />
                       <Text style={styles.groupSizeText}>
                         Size {item.groupSize ?? "-"}
                       </Text>

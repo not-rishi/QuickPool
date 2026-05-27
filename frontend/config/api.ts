@@ -1,44 +1,35 @@
-// @/config/api.ts
-import { API_BASE_URL } from "@/constants/api";
+import { API_BASE_URL } from "@/constants/api-endpoint";
 
 export { API_BASE_URL };
 
 export const API_ENDPOINTS = {
-  // Auth
   auth: {
     sendOtp: `${API_BASE_URL}/api/auth/send-otp`,
     verifyOtp: `${API_BASE_URL}/api/auth/verify-otp`,
     logout: `${API_BASE_URL}/api/auth/logout`,
   },
 
-  // User Management
-  // (Use users.me for both GET info and PUT updates)
   users: {
     me: `${API_BASE_URL}/api/users/me`,
     history: `${API_BASE_URL}/api/users/me/history`,
   },
 
-  // Route & User-Route Management
   routes: {
-    // Used for GET (all) and POST (create)
     base: `${API_BASE_URL}/api/routes`,
 
-    // Dynamic endpoints expecting an ID
     details: (routeId: string | number) =>
       `${API_BASE_URL}/api/routes/${routeId}`,
     join: (routeId: string | number) =>
       `${API_BASE_URL}/api/routes/${routeId}/join`,
     leave: (routeId: string | number) =>
-      `${API_BASE_URL}/api/routes/${routeId}/leave`, // Corrected from duplicate 'join'
+      `${API_BASE_URL}/api/routes/${routeId}/leave`,
     queue: (routeId: string | number) =>
       `${API_BASE_URL}/api/routes/${routeId}/queue`,
   },
 
-  // Group, No-Show & Emergency Management
   groups: {
     current: `${API_BASE_URL}/api/groups/current`,
 
-    // Dynamic endpoints expecting an ID
     details: (groupId: string | number) =>
       `${API_BASE_URL}/api/groups/${groupId}`,
     leave: (groupId: string | number) =>
@@ -53,7 +44,6 @@ export const API_ENDPOINTS = {
       `${API_BASE_URL}/api/groups/${groupId}/panic`,
   },
 
-  // Admin Endpoints
   admin: {
     users: `${API_BASE_URL}/api/admin/users`,
     routes: `${API_BASE_URL}/api/admin/routes`,

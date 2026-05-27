@@ -1,5 +1,3 @@
-// app/group.tsx
-import { BlurView } from "expo-blur";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -20,7 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { API_ENDPOINTS } from "@/config/api";
 import { BrandColors } from "@/constants/brand";
 import { useAuth } from "@/context/auth-context";
-import type { Group, NoShowReport } from "@/types/group";
+import type { NoShowReport } from "@/types/group";
 import type { TravelRoute } from "@/types/route";
 
 const BACKGROUND_IMAGE = require("@/assets/images/background.png");
@@ -137,7 +135,9 @@ export default function GroupScreen() {
   );
 
   const memberList = useMemo(() => {
-    return (group?.members ?? []).filter((member: any) => member._id !== user?._id);
+    return (group?.members ?? []).filter(
+      (member: any) => member._id !== user?._id,
+    );
   }, [group?.members, user?._id]);
 
   const reportWindow = useMemo(() => {
@@ -152,7 +152,8 @@ export default function GroupScreen() {
     if (!startTimeStamp) {
       return {
         allowed: true,
-        label: "Ride is Active. Reporting window open (5-minute countdown active).",
+        label:
+          "Ride is Active. Reporting window open (5-minute countdown active).",
       };
     }
 
@@ -160,7 +161,8 @@ export default function GroupScreen() {
     if (Number.isNaN(startExecutionTime.getTime())) {
       return {
         allowed: true,
-        label: "Ride is Active. Reporting window open (5-minute countdown active).",
+        label:
+          "Ride is Active. Reporting window open (5-minute countdown active).",
       };
     }
 
@@ -168,10 +170,16 @@ export default function GroupScreen() {
     const now = new Date();
 
     if (now <= closeTime) {
-      return { allowed: true, label: "Active Reporting Window Open (Closing soon)." };
+      return {
+        allowed: true,
+        label: "Active Reporting Window Open (Closing soon).",
+      };
     }
 
-    return { allowed: false, label: "Report window has expired (5-minute tracking passed)." };
+    return {
+      allowed: false,
+      label: "Report window has expired (5-minute tracking passed).",
+    };
   }, [group?.status, group?.updatedAt, group?.rideTime]);
 
   const handleStartRide = async () => {
@@ -295,7 +303,7 @@ export default function GroupScreen() {
 
   const handlePanic = async () => {
     if (!token || !group) return;
-    
+
     if (!panicConfirm) {
       setPanicConfirm(true);
       return;
@@ -426,7 +434,7 @@ export default function GroupScreen() {
                     Your Group info will appear here
                   </Text>
                   <Text style={styles.mapBannerSubtitle}>
-                    Don't be late for the ride!
+                    Do not be late for the ride!
                   </Text>
                 </View>
                 <View style={styles.mapBannerIconBox}>
@@ -502,29 +510,40 @@ export default function GroupScreen() {
                         </View>
                       )}
                     </View>
-                    
+
                     <Text style={styles.memberMeta}>
                       {member.usn || "Member Verified"}
                     </Text>
 
                     {/* INTERACTIVE PHONE INTERFACE LINK */}
                     {member.phone ? (
-                      <Pressable 
+                      <Pressable
                         onPress={() => makeCall(member.phone)}
                         style={({ pressed }) => [
                           styles.communicationRow,
-                          pressed && { opacity: 0.6 }
+                          pressed && { opacity: 0.6 },
                         ]}
                       >
-                        <Ionicons name="call-outline" size={13} color="#a78bfa" />
+                        <Ionicons
+                          name="call-outline"
+                          size={13}
+                          color="#a78bfa"
+                        />
                         <Text style={styles.memberPhone} numberOfLines={1}>
                           {member.phone}
                         </Text>
                       </Pressable>
                     ) : (
                       <View style={styles.communicationRow}>
-                        <Ionicons name="call-outline" size={13} color="#52525B" />
-                        <Text style={[styles.memberPhone, { color: "#52525B" }]} numberOfLines={1}>
+                        <Ionicons
+                          name="call-outline"
+                          size={13}
+                          color="#52525B"
+                        />
+                        <Text
+                          style={[styles.memberPhone, { color: "#52525B" }]}
+                          numberOfLines={1}
+                        >
                           No registered phone
                         </Text>
                       </View>
@@ -548,7 +567,8 @@ export default function GroupScreen() {
                 color="#71717A"
               />
               <Text style={styles.hintText}>
-                Contact credentials become visible upon group structure settlement.
+                Contact credentials become visible upon group structure
+                settlement.
               </Text>
             </View>
           </View>
@@ -558,7 +578,8 @@ export default function GroupScreen() {
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Swap Parameters</Text>
               <Text style={styles.cardDescription}>
-                Select a specific target node to minimize cluster matching factors in subsequent grouping routines.
+                Select a specific target node to minimize cluster matching
+                factors in subsequent grouping routines.
               </Text>
               <View style={styles.chipRow}>
                 {memberList.map((member: any) => (
@@ -573,7 +594,8 @@ export default function GroupScreen() {
                     <Text
                       style={[
                         styles.chipText,
-                        selectedSwapUserId === member._id && styles.chipTextActive,
+                        selectedSwapUserId === member._id &&
+                          styles.chipTextActive,
                       ]}
                     >
                       {member.name ?? member.usn ?? "Student"}
@@ -609,7 +631,11 @@ export default function GroupScreen() {
               <Text style={styles.sectionTitle}>No-Show Protocol</Text>
               <View style={styles.windowStatusRow}>
                 <Ionicons
-                  name={reportWindow.allowed ? "checkmark-circle-outline" : "alert-circle-outline"}
+                  name={
+                    reportWindow.allowed
+                      ? "checkmark-circle-outline"
+                      : "alert-circle-outline"
+                  }
                   size={14}
                   color={reportWindow.allowed ? "#4ADE80" : "#94A3B8"}
                 />
@@ -623,13 +649,15 @@ export default function GroupScreen() {
                     onPress={() => setSelectedReportUserId(member._id)}
                     style={[
                       styles.chip,
-                      selectedReportUserId === member._id && styles.chipActiveWarning,
+                      selectedReportUserId === member._id &&
+                        styles.chipActiveWarning,
                     ]}
                   >
                     <Text
                       style={[
                         styles.chipText,
-                        selectedReportUserId === member._id && styles.chipTextActiveWarning,
+                        selectedReportUserId === member._id &&
+                          styles.chipTextActiveWarning,
                       ]}
                     >
                       {member.name ?? member.usn ?? "Student"}
@@ -648,11 +676,17 @@ export default function GroupScreen() {
 
               <Pressable
                 onPress={handleReport}
-                disabled={!reportWindow.allowed || !selectedReportUserId || actionLoading}
+                disabled={
+                  !reportWindow.allowed ||
+                  !selectedReportUserId ||
+                  actionLoading
+                }
                 style={[
                   styles.actionButton,
                   styles.warningButton,
-                  (!reportWindow.allowed || !selectedReportUserId) && { opacity: 0.5 },
+                  (!reportWindow.allowed || !selectedReportUserId) && {
+                    opacity: 0.5,
+                  },
                 ]}
               >
                 <Ionicons
@@ -678,26 +712,34 @@ export default function GroupScreen() {
 
           {/* EMERGENCY SYSTEM OVERLAY */}
           {group.status === "STARTED" && (
-            <View style={[styles.card, { borderColor: "rgba(239, 68, 68, 0.25)" }]}>
-              <Text style={[styles.sectionTitle, { color: "#F87171" }]}>Safety Intervention</Text>
+            <View
+              style={[styles.card, { borderColor: "rgba(239, 68, 68, 0.25)" }]}
+            >
+              <Text style={[styles.sectionTitle, { color: "#F87171" }]}>
+                Safety Intervention
+              </Text>
               <Text style={styles.cardDescription}>
-                Dispatch tracking alarms instantly to platform dispatch admins if unexpected trajectory shifts occur.
+                Dispatch tracking alarms instantly to platform dispatch admins
+                if unexpected trajectory shifts occur.
               </Text>
               <TextInput
                 placeholder="Optional spatial location or status context..."
                 placeholderTextColor="#52525B"
                 value={panicMessage}
                 onChangeText={setPanicMessage}
-                style={[styles.input, { borderColor: "rgba(239, 68, 68, 0.2)" }]}
+                style={[
+                  styles.input,
+                  { borderColor: "rgba(239, 68, 68, 0.2)" },
+                ]}
               />
-              
+
               <Pressable
                 onPress={handlePanic}
                 disabled={actionLoading}
                 style={[
                   styles.actionButton,
                   styles.dangerButton,
-                  panicConfirm && { backgroundColor: "#DC2626" }
+                  panicConfirm && { backgroundColor: "#DC2626" },
                 ]}
               >
                 <Ionicons
@@ -707,16 +749,24 @@ export default function GroupScreen() {
                   style={{ marginRight: 6 }}
                 />
                 <Text style={styles.actionButtonText}>
-                  {panicConfirm ? "TAP AGAIN TO CONFIRM EMERGENCY!" : "Trigger System Panic Alert"}
+                  {panicConfirm
+                    ? "TAP AGAIN TO CONFIRM EMERGENCY!"
+                    : "Trigger System Panic Alert"}
                 </Text>
               </Pressable>
-              
+
               {panicConfirm && (
-                <Pressable 
+                <Pressable
                   onPress={() => setPanicConfirm(false)}
                   style={{ padding: 4, alignItems: "center" }}
                 >
-                  <Text style={{ color: "#A1A1AA", fontSize: 12, textDecorationLine: "underline" }}>
+                  <Text
+                    style={{
+                      color: "#A1A1AA",
+                      fontSize: 12,
+                      textDecorationLine: "underline",
+                    }}
+                  >
                     Cancel Request
                   </Text>
                 </Pressable>
@@ -762,7 +812,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
-    paddingBottom: 120, 
+    paddingBottom: 120,
   },
   glassHeaderCard: {
     backgroundColor: "rgba(23, 23, 23, 0.45)",
@@ -904,7 +954,7 @@ const styles = StyleSheet.create({
   },
   memberPhone: {
     fontSize: 13,
-    color: "#a78bfa", 
+    color: "#a78bfa",
     fontWeight: "600",
     letterSpacing: 0.2,
     flex: 1,

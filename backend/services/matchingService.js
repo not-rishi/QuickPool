@@ -11,14 +11,12 @@ async function runMatchingLogic(routeId, slotId, isFinalizing = false) {
   if (!route) return;
   const batchSize = route.batchSize || 3;
 
-  // Find all queued users for this route and slot, populated with gender
   const queued = await Queue.find({ routeId, slotId })
     .populate("userId")
     .sort({ joinedAt: 1 })
     .exec();
   if (queued.length === 0) return;
 
-  // Load swaps for this route
   const swaps = await Swap.find({ routeId }).exec();
 
   let available = [...queued];
@@ -140,7 +138,7 @@ async function generateQuickRoutes() {
 }
 
 async function finalizeGroups() {
-   return;
+  return;
 }
 
 module.exports = { formGroupsForRoute, generateQuickRoutes, finalizeGroups };

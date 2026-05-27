@@ -1,4 +1,3 @@
-// app/home.tsx
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState, useEffect } from "react";
 import {
@@ -47,7 +46,7 @@ const getAvatarForId = (id: string = "") => {
 
 export default function HomeScreen() {
   const { token, user } = useAuth();
-  // 🪵 TRACE LOG: Fires on every single render pass of the screen
+
   console.log("🏠 [HomeScreen:Render] Current State variables:", {
     hasToken: !!token,
     hasUser: !!user,
@@ -60,14 +59,12 @@ export default function HomeScreen() {
 
   const loadRoutes = useCallback(
     async (isBackgroundRefresh = false) => {
-      // 1. If no token, turn off loading immediately and exit
       if (!token) {
         console.log("⚠️ [HomeScreen:loadRoutes] Aborted: Token is missing.");
         setLoading(false);
         return;
       }
 
-      // 2. Set up loading states for standard fetches
       if (!isBackgroundRefresh) setLoading(true);
       setError(null);
 
@@ -107,14 +104,12 @@ export default function HomeScreen() {
         console.error("Fetch error:", err);
         setError(err.message || "Failed to connect to the server.");
       } finally {
-        // 3. ALWAYS kill the main loader when done, no matter what
         setLoading(false);
       }
     },
-    [token], // Keep this dependency array strict
+    [token],
   );
 
-  // 1. Standard useEffect: Reacts instantly the millisecond the token arrives after login
   useEffect(() => {
     console.log("🔄 [HomeScreen:useEffect] Token dependency changed:", {
       tokenExists: !!token,
@@ -126,12 +121,10 @@ export default function HomeScreen() {
     }
   }, [token, loadRoutes]);
 
-  // 2. useFocusEffect: Handles silent background refreshes when navigating between tabs
   useFocusEffect(
     useCallback(() => {
-      // Check !loading so it doesn't trigger a duplicate fetch right after the useEffect runs
       if (token && !loading) {
-        loadRoutes(true); // true = background refresh (hides the big loader)
+        loadRoutes(true);
       }
     }, [token, loading, loadRoutes]),
   );
@@ -148,7 +141,6 @@ export default function HomeScreen() {
 
   const userAvatar = getAvatarForId(user?._id || user?.usn || "default");
 
-  // Render header elements directly inside FlatList to keep a perfectly smooth screen-wide pull-to-refresh
   const renderHeader = () => (
     <View style={styles.headerBlock}>
       {/* NATIVE PROFILE BLOCK (No upper thick bar) */}
@@ -431,7 +423,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   list: {
-    paddingBottom: 100, // Change this from 40 to 100 (or higher if you have a Tab Bar)
+    paddingBottom: 100,
   },
   cardWrap: {
     paddingHorizontal: 20,

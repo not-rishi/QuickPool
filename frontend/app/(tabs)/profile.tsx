@@ -1,4 +1,3 @@
-// app/profile.tsx
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
@@ -33,7 +32,15 @@ const getAvatarForId = (id: string = "") => {
   return AVATARS[(sum % 10) + 1] || AVATARS[1];
 };
 
-function InfoRow({ label, value, icon }: { label: string; value?: string | number; icon: keyof typeof Ionicons.glyphMap }) {
+function InfoRow({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value?: string | number;
+  icon: keyof typeof Ionicons.glyphMap;
+}) {
   return (
     <View style={styles.row}>
       <View style={styles.rowLeft}>
@@ -75,15 +82,17 @@ export default function ProfileScreen() {
             <Image source={userAvatar} style={styles.avatarImage} />
             <View style={styles.headerTextContainer}>
               <Text style={styles.title}>{user?.name ?? "Student User"}</Text>
-              <Text style={styles.subtitle}>{user?.usn ?? usn ?? "Identification pending"}</Text>
+              <Text style={styles.subtitle}>
+                {user?.usn ?? usn ?? "Identification pending"}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* FLOATING ACTION BANNER FEATURING THE ANIMATED GIF */}
         <View style={styles.mapBannerCard}>
-          <ImageBackground 
-            source={ANIMATED_BANNER} 
+          <ImageBackground
+            source={ANIMATED_BANNER}
             style={styles.mapBannerImage}
             imageStyle={{ opacity: 0.4 }}
             resizeMode="cover"
@@ -95,10 +104,12 @@ export default function ProfileScreen() {
                 </View>
                 <View>
                   <Text style={styles.mapBannerTitle}>Trust Rating Status</Text>
-                  <Text style={styles.mapBannerSubtitle}>Verified ecosystem participant</Text>
+                  <Text style={styles.mapBannerSubtitle}>
+                    Verified ecosystem participant
+                  </Text>
                 </View>
               </View>
-              
+
               <View style={styles.scorePill}>
                 <Ionicons name="star" size={13} color="#ffffff" />
                 <Text style={styles.scoreValue}>
@@ -113,12 +124,28 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionHeading}>Account Credentials</Text>
           <View style={styles.divider} />
-          
+
           <View style={styles.fieldsGrid}>
-            <InfoRow label="Email Identity" value={user?.email} icon="mail-outline" />
-            <InfoRow label="Phone Contact" value={user?.phone} icon="call-outline" />
-            <InfoRow label="Division / Department" value={user?.department} icon="business-outline" />
-            <InfoRow label="Gender Parameter" value={user?.gender} icon="person-outline" />
+            <InfoRow
+              label="Email Identity"
+              value={user?.email}
+              icon="mail-outline"
+            />
+            <InfoRow
+              label="Phone Contact"
+              value={user?.phone}
+              icon="call-outline"
+            />
+            <InfoRow
+              label="Division / Department"
+              value={user?.department}
+              icon="business-outline"
+            />
+            <InfoRow
+              label="Gender Parameter"
+              value={user?.gender}
+              icon="person-outline"
+            />
           </View>
         </View>
 
@@ -128,7 +155,6 @@ export default function ProfileScreen() {
           variant="secondary"
           onPress={handleLogout}
           style={styles.logout}
-          
           textStyle={{ color: "#fc286eba" }}
         />
       </SafeAreaView>

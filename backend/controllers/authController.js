@@ -5,9 +5,9 @@ const { sendOTP } = require("../services/emailService");
 const generateToken = require("../utils/generateToken");
 
 const DEV_CONFIG = {
-  magicUsn: "1BM23EC672", // Any designated testing USN
-  magicOtp: "111111", // The easy bypass code
-  mockEmail: "rishicool@bmsce.ac.in", // Fallback mock email for testing
+  magicUsn: "1BM23EC672", 
+  magicOtp: "111111", 
+  mockEmail: "rishicool@bmsce.ac.in", 
 };
 
 exports.sendOtp = async (req, res, next) => {
@@ -26,7 +26,7 @@ exports.sendOtp = async (req, res, next) => {
       });
     }
 
-    // Find user using USN
+    
     const user = await User.findOne({ usn });
 
     if (!user) {
@@ -81,7 +81,7 @@ exports.verifyOtp = async (req, res, next) => {
       return res.status(400).json({ message: "OTP expired" });
     record.verified = true;
     await record.save();
-    // find or create user
+    
     let user = await User.findOne({ usn });
     if (!user) {
       user = await User.create({ usn, email: record.email, name: usn });
@@ -94,6 +94,6 @@ exports.verifyOtp = async (req, res, next) => {
 };
 
 exports.logout = async (req, res) => {
-  // For stateless JWT, logout handled client-side. Still provide endpoint.
+  
   res.json({ message: "Logged out" });
 };

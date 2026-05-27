@@ -1,18 +1,18 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform } from "react-native";
 
 export const DarkTheme = {
   colors: {
-    background: '#09090B', // Rich zinc/off-black
-    surfaceGlass: 'rgba(255, 255, 255, 0.03)', // Subtle white light for true glass
-    surfaceLevel1: '#18181B', // Elevated input backgrounds
-    borderGhost: 'rgba(255, 255, 255, 0.08)', // Crisp, subtle edges
-    text: '#FDFCFD', // Pure high-contrast white
-    textMuted: '#A1A1AA', // Elegant zinc-400 for secondary text
-    primary: '#7C3AED', // Deep, vibrant violet 
-    gradient: ['#7C3AED', '#DB2777'], // Premium Violet to Magenta shift
+    background: "#09090B",
+    surfaceGlass: "rgba(255, 255, 255, 0.03)",
+    surfaceLevel1: "#18181B",
+    borderGhost: "rgba(255, 255, 255, 0.08)",
+    text: "#FDFCFD",
+    textMuted: "#A1A1AA",
+    primary: "#7C3AED",
+    gradient: ["#7C3AED", "#DB2777"],
   },
   radii: {
-    card: 28, // Slightly rounder for a friendlier, modern feel
+    card: 28,
     full: 9999,
   },
   spacing: {
@@ -22,7 +22,7 @@ export const DarkTheme = {
     md: 24,
     lg: 40,
     xl: 64,
-  }
+  },
 };
 
 export const globalStyles = StyleSheet.create({
@@ -36,10 +36,10 @@ export const globalStyles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: DarkTheme.radii.card,
     padding: DarkTheme.spacing.lg,
-    overflow: 'hidden', 
+    overflow: "hidden",
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.3,
         shadowRadius: 20,

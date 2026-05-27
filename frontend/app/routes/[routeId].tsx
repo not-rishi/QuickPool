@@ -123,7 +123,6 @@ export default function RouteDetailsScreen() {
 
         const data = await response.json();
 
-        // update only if changed
         setQueue((prev) =>
           JSON.stringify(prev) === JSON.stringify(data) ? prev : data,
         );
@@ -175,7 +174,6 @@ export default function RouteDetailsScreen() {
       loadQueue(selectedSlotId);
       loadUserGroup();
 
-      // Poll for queue and group updates every 2.5 seconds
       const pollInterval = setInterval(() => {
         loadQueue(selectedSlotId, true);
         loadUserGroup();
@@ -208,7 +206,7 @@ export default function RouteDetailsScreen() {
   }, [userGroup, user?._id]);
 
   const canJoinQueue = !isInQueue && !isInGroup;
-  // If they are in a group or loading, disable the button (they must leave the group from the Group Screen)
+
   const buttonDisabled = actionLoading || isInGroup;
 
   const canPickFemaleOnly = user?.gender === "Female";
@@ -546,7 +544,7 @@ export default function RouteDetailsScreen() {
             disabled={buttonDisabled}
             style={[
               styles.actionButton,
-              isInQueue && !actionLoading && styles.actionButtonLeave, // Uses your existing dark gray style
+              isInQueue && !actionLoading && styles.actionButtonLeave,
               buttonDisabled && styles.actionButtonDisabled,
             ]}
           >
@@ -556,7 +554,7 @@ export default function RouteDetailsScreen() {
                 : isInGroup
                   ? "In Group - Leave to Join"
                   : isInQueue
-                    ? "Leave Queue" // Updated text
+                    ? "Leave Queue"
                     : "Join Queue"}
             </Text>
 
@@ -622,11 +620,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#171717",
     borderWidth: 1,
     borderColor: "#262626",
-    // Removed fixed height: 160 to allow card to expand safely
   },
   mapImage: {
     width: "100%",
-    height: 130, // Keeps the map look consistent at the top
+    height: 130,
     opacity: 0.6,
   },
   mapInfoContainer: {
@@ -634,22 +631,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: "#171717",
-    gap: 16, // Adds breathing room between origin and destination
+    gap: 16,
   },
   locationRow: {
-    flex: 1, // Ensures both sides split the screen equally (50/50)
+    flex: 1,
     flexDirection: "row",
-    alignItems: "flex-start", // Aligns nicely if text wraps to 2 lines
+    alignItems: "flex-start",
     gap: 8,
   },
   locationTextWrapper: {
-    flex: 1, // Forces text container to fill space and respect bounds
+    flex: 1,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginTop: 4, // Centers the dot with the first line of text
+    marginTop: 4,
   },
   locationLabel: {
     fontSize: 11,
@@ -662,7 +659,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
     marginTop: 2,
-    flexWrap: "wrap", // Safely forces text wrapping
+    flexWrap: "wrap",
   },
   slotsContainer: {
     gap: 12,

@@ -1,10 +1,6 @@
-// utils/emailTemplates.js
 
 const LOGO_URL = "https://res.cloudinary.com/dtswcmnft/image/upload/v1779868399/icon_mmrplh.gif"; 
 
-/**
- * Neon Pastel Layout Wrapper
- */
 const neonBaseLayout = (title, contentHtml) => `
 <!DOCTYPE html>
 <html>
@@ -102,9 +98,6 @@ const getOtpTemplate = (otpCode) => {
   return neonBaseLayout("QuickPool Verification Code", content);
 };
 
-/**
- * Emergency Panic Content Generator
- */
 const getPanicTemplate = (groupId, message, userEmail) => {
   const content = `
     <div class="title panic-title">🚨 System Panic Triggered!</div>

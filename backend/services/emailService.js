@@ -1,13 +1,14 @@
 const { Resend } = require("resend");
-// 1. Import your brand new drawing layouts
-const { getOtpTemplate, getPanicTemplate } = require("../templates/mailTemplate");
+
+const {
+  getOtpTemplate,
+  getPanicTemplate,
+} = require("../templates/mailTemplate");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// 2. Modified sendOTP: accept code directly to bake inside template
 const sendOTP = async (email, otpCode) => {
   try {
-    // Generate the crayon styled markup structure
     const htmlPayload = getOtpTemplate(otpCode);
 
     const response = await resend.emails.send({
@@ -28,7 +29,6 @@ const sendPanicEmail = async (groupId, message, userEmail) => {
     const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM;
     if (!adminEmail) return;
 
-    // Generate the stylized, readable panic reporting card
     const htmlPayload = getPanicTemplate(groupId, message, userEmail);
 
     await resend.emails.send({

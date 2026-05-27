@@ -2,7 +2,6 @@ const User = require("../models/User");
 const Route = require("../models/Route");
 const PanicReport = require("../models/PanicReport");
 
-
 exports.dismissPanicReport = async (req, res, next) => {
   try {
     const { reportId } = req.params;
@@ -12,7 +11,6 @@ exports.dismissPanicReport = async (req, res, next) => {
       return res.status(404).json({ message: "Panic report not found" });
     }
 
-    // Delete the report from the database
     await PanicReport.deleteOne({ _id: reportId });
 
     res.json({ message: "Panic report dismissed successfully" });
@@ -41,23 +39,22 @@ exports.getRoutes = async (req, res, next) => {
 
 exports.getPanicReports = async (req, res, next) => {
   try {
-    // 🔥 Deep populate across multi-level collections
     const reports = await PanicReport.find()
-      .populate("userId") // Hydrates the primary student who triggered panic
+      .populate("userId")
       .populate({
-        path: "groupId", // Reaches into the Group document
+        path: "groupId",
         populate: [
           {
-            path: "members", // 🔥 Deep populates the array of co-passengers in the car
-            select: "name usn email phone gender reputationScore"
+            path: "members",
+            select: "name usn email phone gender reputationScore",
           },
           {
-            path: "routeId", // 🔥 Self-healing: Safely pulls route data nested directly inside the group
-            select: "start destination description"
-          }
-        ]
+            path: "routeId",
+            select: "start destination description",
+          },
+        ],
       })
-      .sort({ createdAt: -1 }); // Keep newest emergencies at the top
+      .sort({ createdAt: -1 });
 
     res.json(reports);
   } catch (err) {

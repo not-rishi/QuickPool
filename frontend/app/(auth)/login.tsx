@@ -19,7 +19,7 @@ import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { normalizeUsn, USN_LENGTH, USN_REGEX } from "@/constants/validation";
 import { useAuth } from "@/context/auth-context";
-import { API_ENDPOINTS } from "@/config/api"; // Importing global endpoint config
+import { API_ENDPOINTS } from "@/config/api";
 import { sendOtp } from "@/services/auth";
 
 export default function LoginScreen() {
@@ -41,7 +41,6 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      // Using the central global path definition
       const response = await fetch(API_ENDPOINTS.auth.sendOtp, {
         method: "POST",
         headers: {
@@ -108,7 +107,7 @@ export default function LoginScreen() {
                 <View style={styles.inputWrapper}>
                   <Text style={styles.elevatedLabel}>Enter Your USN</Text>
                   <AuthInput
-                    label="" // Pass empty if your component natively renders its own internally, or adapt your component to ingest styles below
+                    label=""
                     value={usn}
                     onChangeText={(text) => setUsn(normalizeUsn(text))}
                     placeholder="e.g. 1BM24CS001"
@@ -123,16 +122,12 @@ export default function LoginScreen() {
                 <View style={styles.buttonContainer}>
                   <PrimaryButton
                     label="Send OTP"
-                    loading={loading} // Use the built-in loading prop
+                    loading={loading}
                     onPress={handleContinue}
                     disabled={!isValid}
-                    style={styles.loginButton} // Add this line
+                    style={styles.loginButton}
                   >
-                    {loading && (
-                      <ActivityIndicator
-                        color="#fff"
-                      />
-                    )}
+                    {loading && <ActivityIndicator color="#fff" />}
                   </PrimaryButton>
 
                   <Text style={styles.hintText}>
@@ -156,7 +151,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "#00000050",
-    color: "#f0f0f097", // typed text color
+    color: "#f0f0f097",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -222,10 +217,10 @@ const styles = StyleSheet.create({
   elevatedLabel: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#ffffff", // Vibrant Purple tint to draw immediate attention
+    color: "#ffffff",
     textTransform: "uppercase",
     letterSpacing: 1.5,
-    textShadowColor: "rgba(168, 85, 247, 0.4)", // Soft glow underlying the label text
+    textShadowColor: "rgba(168, 85, 247, 0.4)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
     paddingLeft: 4,
@@ -248,7 +243,6 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: "#a78bfa",
-    // You can also add shadows or specific purple shades here
     shadowColor: "#a78bfa",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

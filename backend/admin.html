@@ -363,7 +363,6 @@
           .join("");
       }
 
-      // --- BACKEND WRAPPER UTILITIES ---
       const headers = {
         "X-Admin-Bypass": "true",
         "Content-Type": "application/json",
@@ -396,8 +395,6 @@
         .addEventListener("submit", async (e) => {
           e.preventDefault();
 
-          // Map dynamic records strictly to what your backend structure demands
-          // If your backend expects a simple array of timestamps object blocks, this sends exactly that.
           const payload = {
             start: document.getElementById("start").value,
             destination: document.getElementById("destination").value,
@@ -439,7 +436,6 @@
         }
       }
 
-      // --- DOM INJECTIONS ---
       function renderRoutesTable(routes) {
         const tbody = document.getElementById("routesTableBody");
         if (!routes.length) {
@@ -502,11 +498,9 @@
 
         container.innerHTML = reports
           .map((report) => {
-            // Unpack data from our new deeply populated backend structure
             const reporter = report.userId || {};
             const targetGroup = report.groupId || {};
 
-            // 🔥 SELF-HEALING ROUTE PICKER: Tries report path first, falls back to nested group path
             const targetRoute = report.routeId || targetGroup.routeId || {};
 
             const routeStart = targetRoute.start || "Unknown Origin";
@@ -530,7 +524,6 @@
                 })
               : "Just Now";
 
-            // Extract and filter out the reporter from co-riders list
             const groupMembersList = targetGroup.members || [];
             const coRiders = groupMembersList.filter(
               (m) => m._id !== reporter._id,
@@ -642,7 +635,6 @@
       }
 
       async function dismissPanic(reportId) {
-        // Enforce explicit admin confirmation before clearing the distress state
         if (
           !confirm(
             "Are you sure you want to dismiss this emergency panic alert? Ensure the situation has been fully resolved.",
@@ -664,7 +656,6 @@
           );
 
           if (res.ok) {
-            // Instantly re-fetch reports to clear the card from the screen dynamically
             fetchPanicReports();
           } else {
             const errData = await res.json();

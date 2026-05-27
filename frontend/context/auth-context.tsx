@@ -10,7 +10,7 @@ import {
 } from "react";
 import { Platform } from "react-native";
 
-import { AUTH_STORAGE_KEYS } from "@/constants/api";
+import { AUTH_STORAGE_KEYS } from "@/constants/api-endpoint";
 import { logout as logoutApi } from "@/services/auth";
 import type { User } from "@/types/user";
 
@@ -28,7 +28,6 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// 🔒 Dynamic Platform-Agnostic Storage Wrappers
 const getStorageItem = async (key: string): Promise<string | null> => {
   if (Platform.OS === "web") {
     if (typeof window !== "undefined") {
@@ -64,7 +63,6 @@ async function readStoredSession(): Promise<{
   usn: string | null;
   user: User | null;
 }> {
-  // Uses our platform wrapper to fetch tokens without throwing native method exceptions
   const [token, usn, userJson] = await Promise.all([
     getStorageItem(AUTH_STORAGE_KEYS.token),
     getStorageItem(AUTH_STORAGE_KEYS.usn),
@@ -131,9 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       try {
         await logoutApi(token);
-      } catch {
-        // Client-side fallback: ignore network discrepancies during logouts
-      }
+      } catch {}
     }
     await Promise.all([
       deleteStorageItem(AUTH_STORAGE_KEYS.token),

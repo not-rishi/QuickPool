@@ -21,26 +21,24 @@ const BATCH_SIZES = [3, 4, 6];
 
 export default function CreateRouteScreen() {
   const { token } = useAuth();
-  
-  // Form State
+
   const [start, setStart] = useState("");
   const [destination, setDestination] = useState("");
   const [description, setDescription] = useState("");
   const [batchSize, setBatchSize] = useState<number>(4);
 
-  // Time State
   const [startTime, setStartTime] = useState(new Date());
-  // Default end time to 2 hours from now
-  const [endTime, setEndTime] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000));
-  
+
+  const [endTime, setEndTime] = useState(
+    new Date(Date.now() + 2 * 60 * 60 * 1000),
+  );
+
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-  
-  // UI State
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Time format helper
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
@@ -162,14 +160,14 @@ export default function CreateRouteScreen() {
                     value={startTime}
                     mode="time"
                     display="spinner"
-                    minimumDate={new Date()} // Can't start in the past
-                    maximumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)} // Max 24 hours from now
+                    minimumDate={new Date()}
+                    maximumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
                     onChange={(event, date) => {
-                      setShowStartPicker(Platform.OS === "ios"); // iOS picker stays inline usually, Android closes
+                      setShowStartPicker(Platform.OS === "ios");
                       if (event.type === "set" && date) {
                         setShowStartPicker(false);
                         setStartTime(date);
-                        // Auto-adjust end time if it's now behind the start time
+
                         if (endTime <= date) {
                           setEndTime(new Date(date.getTime() + 60 * 60 * 1000));
                         }
@@ -195,8 +193,10 @@ export default function CreateRouteScreen() {
                     value={endTime}
                     mode="time"
                     display="spinner"
-                    minimumDate={startTime} // Can't end before it starts
-                    maximumDate={new Date(startTime.getTime() + 24 * 60 * 60 * 1000)} // Max 24 hours after start
+                    minimumDate={startTime}
+                    maximumDate={
+                      new Date(startTime.getTime() + 24 * 60 * 60 * 1000)
+                    }
                     onChange={(event, date) => {
                       setShowEndPicker(Platform.OS === "ios");
                       if (event.type === "set" && date) {
@@ -256,7 +256,10 @@ export default function CreateRouteScreen() {
 
         <View style={styles.footer}>
           <Pressable
-            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+            style={[
+              styles.submitButton,
+              isLoading && styles.submitButtonDisabled,
+            ]}
             onPress={handleCreateRoute}
             disabled={isLoading}
           >
