@@ -111,7 +111,9 @@ exports.deleteRoute = async (req, res, next) => {
 
     // Use deleteOne since remove() is deprecated in newer Mongoose versions
     await Route.deleteOne({ _id: routeId });
-    res.json({ message: "Route deleted successfully" });
+    await Queue.deleteMany({ routeId: routeId });
+
+    res.json({ message: "Route and associated queues deleted successfully" });
   } catch (err) {
     next(err);
   }
@@ -127,12 +129,41 @@ exports.joinRoute = async (req, res, next) => {
     }
 
     // Check if user is already in a queue for ANY route
+    // Check if user is already in a queue for ANY route
     const queueEntry = await Queue.findOne({ userId: req.userId });
+
     if (queueEntry) {
-      return res.status(400).json({
-        message:
-          "You are already in a queue for another route. Leave that queue first.",
-      });
+      // Fetch the route tied to this queue entry
+      const existingRoute = await Route.findById(queueEntry.routeId);
+
+      // Determine if the route has expired based on its time slots
+      let isExpired = false;
+      if (
+        existingRoute &&
+        existingRoute.timeSlots &&
+        existingRoute.timeSlots.length > 0
+      ) {
+        const latestEndTime = Math.max(
+          ...existingRoute.timeSlots.map((slot) =>
+            new Date(slot.endTime || slot.end).getTime(),
+          ),
+        );
+        if (latestEndTime <= Date.now()) {
+          isExpired = true;
+        }
+      }
+
+      // If the route was deleted, or the time slot passed, clean up the orphan queue
+      if (!existingRoute || isExpired) {
+        await Queue.deleteOne({ _id: queueEntry._id });
+        console.log(`Cleaned up orphaned queue entry for user ${req.userId}`);
+      } else {
+        // Route is still valid and active, block them
+        return res.status(400).json({
+          message:
+            "You are already in a queue for another active route. Leave that queue first.",
+        });
+      }
     }
 
     // Check if user is already in a group
