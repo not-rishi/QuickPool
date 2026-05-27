@@ -64,3 +64,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+console.log(`
+MdmmmmmmmmmmmmmmmmmmmmmpMWWWWWWMMWMWWWWW
+or                     toWWWWWWWWWWWWWWW
+or      .lvwbpzt,      toWMWWMWMWMWWWWWW
+or    !wowzTi!vmabT    toWWWWMMWWWWMWWWW
+or   zoY.        naC;  toMMWMWWWMWWWMMWM
+or  von           lhY. toWWWWWWWWWWWWWWM
+or .op.           .Ubi toWWWWWWWWMWWWWWW
+or .op.           .Ybi toMWWWWMWWMWWWWMW
+or  zax           lkU, toWWWWWWWWWMMMWWW
+or   Xaz.        xaL;  toWMMWMWMWWWWWWWM
+or    Tpowxi:;jLaaF..  toWWWWWMWWWWMWWWW
+or       jLdkbwQQQQQLl toMWWWWWMMWWWWMMW
+or                     TaMMMMMMMMMMMMMMM
+MooooooooooooooooooooooQ,.............ra
+MMWWMWWWMWWWMWWWMWWWWMMm.  .XqqwwX:   ja
+MMWWMWMWWWWMMWWMWWMWWWWm.  ,Cr   Tb;  ja
+MMWWMWWMWWWWWWWMMWWWWWWm.  ,Cr   !pi  ja
+MMMWWMWMWWWWMWWWMWWWWWWm.  ,LpLLmLl   ja
+MMWWMMWWWMWWWMWMWWWWWWWm.  ,Cr        ja
+MMWMWMWWMWWWMWWMWWWWWWWm.  ,Cr        ja
+MMMWMWWMMWWWWWWWMWWMWWWm.   i,        ja
+MMMMMMMMMMMMMMMMMMMMMMMhmQQQQQQQQQQQQQpM
+`);
