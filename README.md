@@ -1,188 +1,259 @@
+<div align="center">
 
-```
-QuickPool
-├─ backend
-│  ├─ .env
-│  ├─ admin.html
-│  ├─ config
-│  │  └─ db.js
-│  ├─ controllers
-│  │  ├─ adminController.js
-│  │  ├─ authController.js
-│  │  ├─ emergencyController.js
-│  │  ├─ groupController.js
-│  │  ├─ routeController.js
-│  │  └─ userController.js
-│  ├─ middleware
-│  │  ├─ authMiddleware.js
-│  │  └─ errorMiddleware.js
-│  ├─ models
-│  │  ├─ Group.js
-│  │  ├─ NoShowReport.js
-│  │  ├─ OTP.js
-│  │  ├─ PanicReport.js
-│  │  ├─ Queue.js
-│  │  ├─ RideHistory.js
-│  │  ├─ Route.js
-│  │  ├─ Swap.js
-│  │  └─ User.js
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ route-contract.txt
-│  ├─ routes
-│  │  ├─ adminRoutes.js
-│  │  ├─ authRoutes.js
-│  │  ├─ emergencyRoutes.js
-│  │  ├─ groupRoutes.js
-│  │  ├─ routeRoutes.js
-│  │  └─ userRoutes.js
-│  ├─ scripts
-│  │  └─ fetchOtp.js
-│  ├─ server.js
-│  ├─ services
-│  │  ├─ emailService.js
-│  │  └─ matchingService.js
-│  ├─ templates
-│  │  └─ mailTemplate.js
-│  └─ utils
-│     ├─ generateOTP.js
-│     └─ generateToken.js
-├─ frontend
-│  ├─ .expo
-│  │  ├─ cache
-│  │  │  └─ eslint
-│  │  │     └─ .cache_vm90f8
-│  │  ├─ devices.json
-│  │  ├─ README.md
-│  │  ├─ types
-│  │  │  └─ router.d.ts
-│  │  └─ web
-│  │     └─ cache
-│  │        └─ production
-│  │           └─ images
-│  │              └─ favicon
-│  │                 ├─ favicon-a4e030697a7571b3e95d31860e4da55d2f98e5e861e2b55e414f45a8556828ba-contain-transparent
-│  │                 │  └─ favicon-48.png
-│  │                 └─ favicon-bf70310af2440e95414af45eef748dc978380bbb30ba2d91533ef4b8c5e4d8d3-contain-transparent
-│  │                    └─ favicon-48.png
-│  ├─ app
-│  │  ├─ (auth)
-│  │  │  ├─ login.tsx
-│  │  │  ├─ otp.tsx
-│  │  │  └─ _layout.tsx
-│  │  ├─ (tabs)
-│  │  │  ├─ group.tsx
-│  │  │  ├─ history.tsx
-│  │  │  ├─ index.tsx
-│  │  │  ├─ profile.tsx
-│  │  │  └─ _layout.tsx
-│  │  ├─ create-route.tsx
-│  │  ├─ index.tsx
-│  │  ├─ modal.tsx
-│  │  ├─ routes
-│  │  │  └─ [routeId].tsx
-│  │  └─ _layout.tsx
-│  ├─ app.json
-│  ├─ assets
-│  │  ├─ animated
-│  │  │  ├─ group.gif
-│  │  │  ├─ group.mp4
-│  │  │  ├─ history.gif
-│  │  │  ├─ map_draw.gif
-│  │  │  ├─ profile.gif
-│  │  │  ├─ travel.gif
-│  │  │  └─ travel.mp4
-│  │  └─ images
-│  │     ├─ android-icon-background.png
-│  │     ├─ android-icon-foreground.png
-│  │     ├─ android-icon-monochrome.png
-│  │     ├─ avatars
-│  │     │  ├─ avatar1.png
-│  │     │  ├─ avatar10.png
-│  │     │  ├─ avatar2.png
-│  │     │  ├─ avatar3.png
-│  │     │  ├─ avatar4.png
-│  │     │  ├─ avatar5.png
-│  │     │  ├─ avatar6.png
-│  │     │  ├─ avatar7.png
-│  │     │  ├─ avatar8.png
-│  │     │  └─ avatar9.png
-│  │     ├─ background.png
-│  │     ├─ favicon.png
-│  │     ├─ group.png
-│  │     ├─ icon.gif
-│  │     ├─ icon.png
-│  │     ├─ icon_b.gif
-│  │     ├─ icon_b.png
-│  │     ├─ icon_w.gif
-│  │     ├─ icon_w.png
-│  │     ├─ map-placeholder.png
-│  │     ├─ partial-react-logo.png
-│  │     ├─ react-logo.png
-│  │     ├─ react-logo@2x.png
-│  │     ├─ react-logo@3x.png
-│  │     └─ splash-icon.png
-│  ├─ components
-│  │  ├─ branding
-│  │  │  └─ quickpool-logo.tsx
-│  │  ├─ external-link.tsx
-│  │  ├─ haptic-tab.tsx
-│  │  ├─ hello-wave.tsx
-│  │  ├─ parallax-scroll-view.tsx
-│  │  ├─ routes
-│  │  │  └─ route-card.tsx
-│  │  ├─ themed-text.tsx
-│  │  ├─ themed-view.tsx
-│  │  └─ ui
-│  │     ├─ auth-input.tsx
-│  │     ├─ collapsible.tsx
-│  │     ├─ icon-symbol.ios.tsx
-│  │     ├─ icon-symbol.tsx
-│  │     ├─ primary-button.tsx
-│  │     └─ screen-container.tsx
-│  ├─ config
-│  │  └─ api.ts
-│  ├─ constants
-│  │  ├─ api.ts
-│  │  ├─ brand.ts
-│  │  ├─ theme.ts
-│  │  └─ validation.ts
-│  ├─ context
-│  │  └─ auth-context.tsx
-│  ├─ eslint.config.js
-│  ├─ expo-env.d.ts
-│  ├─ hooks
-│  │  ├─ use-color-scheme.ts
-│  │  ├─ use-color-scheme.web.ts
-│  │  └─ use-theme-color.ts
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ scripts
-│  │  └─ reset-project.js
-│  ├─ services
-│  │  ├─ api.ts
-│  │  ├─ auth.ts
-│  │  └─ routes.ts
-│  ├─ tsconfig.json
-│  ├─ types
-│  │  ├─ group.ts
-│  │  ├─ history.ts
-│  │  ├─ queue.ts
-│  │  ├─ route.ts
-│  │  └─ user.ts
-│  └─ utils
-│     └─ storage.ts
-├─ readme assets
-│  ├─ admin_panel.png
-│  ├─ email.png
-│  ├─ group.png
-│  ├─ history.jpg
-│  ├─ home.jpg
-│  ├─ otp.jpg
-│  ├─ profile.jpg
-│  ├─ route_bottom.jpg
-│  ├─ route_top.jpg
-│  └─ usn.jpg
-└─ README.md
+<img src="./frontend/assets/images/icon.gif" width="140"/>
 
+# QuickPool
+
+### Smart Ride Pooling Platform
+
+<p align="center">
+Intelligent route matching and group-based travel with safety systems, reputation management and automated ride formation.
+</p>
+
+<br>
+
+<img src="https://img.shields.io/badge/React%20Native-Expo-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/Node.js-Express-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/MongoDB-Mongoose-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/TypeScript-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/JWT-Authentication-a78bfa?style=for-the-badge">
+
+<br><br>
+
+<a href="#showcase">Showcase</a> •
+<a href="#overview">Overview</a> •
+<a href="#features">Features</a> •
+<a href="#tech-stack">Tech Stack</a> •
+<a href="#installation">Installation</a>
+
+</div>
+
+---
+
+## Showcase
+
+### Authentication
+
+<div align="center">
+
+<img src="./docs/screenshots/usn.jpg" height="500"/>
+<img src="./docs/screenshots/email.png" height="500"/>
+<img src="./docs/screenshots/otp.jpg" height="500"/>
+
+<br><br>
+
+Secure OTP-based authentication flow using university ID verification, email verification and login confirmation.
+
+</div>
+
+---
+
+### Home
+
+<div align="center">
+
+<img src="./docs/screenshots/home.jpg" height="500"/>
+
+<br><br>
+
+Browse available ride routes, discover matching users and create personalized travel routes.
+
+</div>
+
+---
+
+### Groups
+
+<div align="center">
+
+<img src="./docs/screenshots/group.png" height="500"/>
+
+<br><br>
+
+Manage ride groups, monitor members, request swaps and handle ride participation.
+
+</div>
+
+---
+
+### History
+
+<div align="center">
+
+<img src="./docs/screenshots/history.jpg" height="500"/>
+
+<br><br>
+
+View previous rides, track participants and maintain ride activity records.
+
+</div>
+
+---
+
+### Profile
+
+<div align="center">
+
+<img src="./docs/screenshots/profile.jpg" height="500"/>
+
+<br><br>
+
+Manage user information, reputation score and account details.
+
+</div>
+---
+
+## Overview
+
+QuickPool is a full-stack ride pooling application that automatically matches users travelling on similar routes and forms optimized ride groups.
+
+Core goals:
+
+- Intelligent route matching
+- Automated ride grouping
+- Ride safety features
+- Reputation management
+- Ride history tracking
+- Emergency support system
+
+---
+
+## Features
+
+### Authentication
+
+- OTP-based login
+- Email verification
+- JWT authentication
+- Secure local storage
+
+### Route System
+
+```ts
+QUICK_ROUTE
+USER_ROUTE
 ```
+
+Supports:
+
+- Source and destination
+- Time slots
+- Capacity selection
+- Dynamic route creation
+
+### Matching System
+
+```txt
+FORMED
+↓
+STARTED
+↓
+COMPLETED
+```
+
+Automatically:
+
+- Finds matching routes
+- Creates ride groups
+- Updates ride status
+
+### Safety
+
+- Panic reporting
+- No-show reporting
+- Reputation scoring
+
+### Ride Management
+
+- Group management
+- Ride swapping
+- Ride history
+
+---
+
+## Tech Stack
+
+### Frontend
+
+```txt
+React Native
+Expo
+TypeScript
+Expo Router
+Secure Store
+```
+
+### Backend
+
+```txt
+Node.js
+Express
+MongoDB
+Mongoose
+JWT
+Node Cron
+Nodemailer
+```
+
+---
+
+## Architecture
+
+```txt
+Mobile App
+     ↓
+Express API
+     ↓
+Services Layer
+     ↓
+MongoDB
+```
+
+---
+
+## Installation
+
+### Clone repository
+
+```bash
+git clone https://github.com/not-rishi/QuickPool.git
+
+cd QuickPool
+```
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npx expo start
+```
+
+---
+
+## API
+
+```txt
+/ api/auth
+/ api/users
+/ api/routes
+/ api/groups
+/ api/emergency
+/ api/admin
+```
+
+---
+
+<div align="center">
+
+Built by Rishi
+
+</div>
