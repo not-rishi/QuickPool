@@ -15,8 +15,9 @@ Intelligent route matching and group-based travel with safety systems, reputatio
 <img src="https://img.shields.io/badge/React%20Native-Expo-a78bfa?style=for-the-badge">
 <img src="https://img.shields.io/badge/Node.js-Express-a78bfa?style=for-the-badge">
 <img src="https://img.shields.io/badge/MongoDB-Mongoose-a78bfa?style=for-the-badge">
-<img src="https://img.shields.io/badge/TypeScript-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/Frontend-TypeScript-a78bfa?style=for-the-badge">
 <img src="https://img.shields.io/badge/JWT-Authentication-a78bfa?style=for-the-badge">
+<img src="https://img.shields.io/badge/LoC-23,166-a78bfa?style=for-the-badge">
 
 <br><br>
 
