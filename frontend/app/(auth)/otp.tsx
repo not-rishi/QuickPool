@@ -75,9 +75,10 @@ export default function OtpScreen() {
         "⏱️ [OTP:handleVerify] Scheduling router switch via setTimeout...",
       );
 
-      if (__DEV__ && usn === "1BM23EC672") {
-        setOtp("");
+      if (__DEV__ && usn === "SMARTRISHI") {
+        setOtp("111111");
         Alert.alert("✨ Dev Success!", "The Magic OTP worked perfectly!");
+        router.replace("/(tabs)");
         return;
       }
 

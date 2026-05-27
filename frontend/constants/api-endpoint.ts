@@ -5,6 +5,8 @@ const DEFAULT_HOST =
 
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_HOST;
 
+console.log("ENV:", process.env.EXPO_PUBLIC_API_URL);
+
 export const AUTH_STORAGE_KEYS = {
   token: 'quickpool_token',
   usn: 'quickpool_usn',
