@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="frontend/assets/images/icon.gif" alt="QuickPool Banner" width="200" style="max-width: 100%;" />
+  <h1>QuickPool</h1>
+</div>
 
 ```
 QuickPool
