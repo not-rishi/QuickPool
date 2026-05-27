@@ -1,0 +1,79 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Build output
+# =========================
+dist/
+build/
+coverage/
+web-build/
+.next/
+out/
+
+# =========================
+# Expo / React Native
+# =========================
+.expo/
+.expo-shared/
+expo-env.d.ts
+
+# Metro
+.metro-health-check*
+
+# React Native generated
+*.keystore
+
+# =========================
+# Cache
+# =========================
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# VS Code / IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.swp
+
+# =========================
+# Package lock exceptions
+# Keep lock files
+# =========================
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml

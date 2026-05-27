@@ -1,7 +1,3 @@
-<div align="center">
-  <img src="frontend/assets/images/icon.gif" alt="QuickPool Banner" width="200" style="max-width: 100%;" />
-  <h1>QuickPool</h1>
-</div>
 
 ```
 QuickPool
@@ -47,12 +43,11 @@ QuickPool
 │  │  ├─ emailService.js
 │  │  └─ matchingService.js
 │  ├─ templates
-│  │  └─ otpTemplate.js
+│  │  └─ mailTemplate.js
 │  └─ utils
 │     ├─ generateOTP.js
 │     └─ generateToken.js
 ├─ frontend
-│  ├─ .env
 │  ├─ .expo
 │  │  ├─ cache
 │  │  │  └─ eslint
@@ -114,6 +109,7 @@ QuickPool
 │  │     │  └─ avatar9.png
 │  │     ├─ background.png
 │  │     ├─ favicon.png
+│  │     ├─ group.png
 │  │     ├─ icon.gif
 │  │     ├─ icon.png
 │  │     ├─ icon_b.gif
@@ -154,13 +150,13 @@ QuickPool
 │  ├─ context
 │  │  └─ auth-context.tsx
 │  ├─ eslint.config.js
+│  ├─ expo-env.d.ts
 │  ├─ hooks
 │  │  ├─ use-color-scheme.ts
 │  │  ├─ use-color-scheme.web.ts
 │  │  └─ use-theme-color.ts
 │  ├─ package-lock.json
 │  ├─ package.json
-│  ├─ README.md
 │  ├─ scripts
 │  │  └─ reset-project.js
 │  ├─ services
@@ -178,6 +174,7 @@ QuickPool
 │     └─ storage.ts
 ├─ readme assets
 │  ├─ admin_panel.png
+│  ├─ email.png
 │  ├─ group.png
 │  ├─ history.jpg
 │  ├─ home.jpg
