@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="../frontend/assets/images/icon.png">
+    <link
+      rel="icon"
+      type="image/png"
+      href="../frontend/assets/images/icon.png"
+    />
     <title>QuickPool Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -160,18 +164,30 @@
                   Configure Time Windows (Timestamps)
                 </label>
                 <div class="flex gap-2 items-center">
-                  <div class="flex-1 grid grid-cols-2 gap-1 bg-neutral-950 border border-neutral-800 rounded-xl p-1.5 text-xs text-neutral-400">
+                  <div
+                    class="flex-1 grid grid-cols-2 gap-1 bg-neutral-950 border border-neutral-800 rounded-xl p-1.5 text-xs text-neutral-400"
+                  >
                     <div class="flex items-center gap-1 px-1">
                       <span>From:</span>
-                      <input type="time" id="slotStart" class="bg-transparent text-white focus:outline-none w-full [color-scheme:dark]">
+                      <input
+                        type="time"
+                        id="slotStart"
+                        class="bg-transparent text-white focus:outline-none w-full [color-scheme:dark]"
+                      />
                     </div>
-                    <div class="flex items-center gap-1 border-l border-neutral-800 px-2">
+                    <div
+                      class="flex items-center gap-1 border-l border-neutral-800 px-2"
+                    >
                       <span>To:</span>
-                      <input type="time" id="slotEnd" class="bg-transparent text-white focus:outline-none w-full [color-scheme:dark]">
+                      <input
+                        type="time"
+                        id="slotEnd"
+                        class="bg-transparent text-white focus:outline-none w-full [color-scheme:dark]"
+                      />
                     </div>
                   </div>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onclick="addTimeSlotTimestamp()"
                     class="bg-neutral-800 hover:bg-neutral-700 text-purple-400 hover:text-purple-300 font-bold px-3 py-2.5 rounded-xl border border-neutral-700 text-sm transition shrink-0"
                   >
@@ -179,8 +195,15 @@
                   </button>
                 </div>
 
-                <div id="slotTagsContainer" class="flex flex-col gap-1.5 p-2 bg-neutral-950/50 border border-neutral-800/60 rounded-xl min-h-[44px]">
-                  <span class="text-neutral-600 text-xs italic self-center pl-1" id="noSlotsPlaceholder">No custom timestamps added yet.</span>
+                <div
+                  id="slotTagsContainer"
+                  class="flex flex-col gap-1.5 p-2 bg-neutral-950/50 border border-neutral-800/60 rounded-xl min-h-[44px]"
+                >
+                  <span
+                    class="text-neutral-600 text-xs italic self-center pl-1"
+                    id="noSlotsPlaceholder"
+                    >No custom timestamps added yet.</span
+                  >
                 </div>
               </div>
 
@@ -274,10 +297,10 @@
         const [hours, minutes] = timeString.split(":").map(Number);
         const dateObj = new Date();
         dateObj.setHours(hours, minutes, 0, 0);
-        
+
         // Note: Returns ISO String (e.g. "2026-05-26T14:30:00.000Z")
         // Change to dateObj.getTime() if your backend requires numeric Epoch millisecond variants!
-        return dateObj.toISOString(); 
+        return dateObj.toISOString();
       }
 
       function addTimeSlotTimestamp() {
@@ -294,7 +317,9 @@
         const displayLabel = `${startVal} - ${endVal}`;
 
         // Prevent redundant tracking targets
-        if (dynamicTimeSlots.some(slot => slot.displayLabel === displayLabel)) {
+        if (
+          dynamicTimeSlots.some((slot) => slot.displayLabel === displayLabel)
+        ) {
           alert("This time config has already been registered.");
           return;
         }
@@ -302,7 +327,7 @@
         dynamicTimeSlots.push({
           startTime: startTimestamp,
           endTime: endTimestamp,
-          displayLabel: displayLabel
+          displayLabel: displayLabel,
         });
 
         updateSlotsUI();
@@ -323,7 +348,9 @@
           return;
         }
 
-        container.innerHTML = dynamicTimeSlots.map((slot, index) => `
+        container.innerHTML = dynamicTimeSlots
+          .map(
+            (slot, index) => `
           <div class="flex items-center justify-between bg-purple-500/10 border border-purple-500/20 px-3 py-1.5 rounded-xl text-xs">
             <div class="font-mono text-purple-400">
               <span class="text-white font-bold">${slot.displayLabel}</span> 
@@ -331,7 +358,9 @@
             </div>
             <button type="button" onclick="removeTimeSlotTag(${index})" class="text-neutral-400 hover:text-red-400 font-bold ml-2">✕</button>
           </div>
-        `).join("");
+        `,
+          )
+          .join("");
       }
 
       // --- BACKEND WRAPPER UTILITIES ---
@@ -352,7 +381,9 @@
 
       async function fetchPanicReports() {
         try {
-          const res = await fetch(`${API_BASE}/admin/panic-reports`, { headers });
+          const res = await fetch(`${API_BASE}/admin/panic-reports`, {
+            headers,
+          });
           const reports = res.ok ? await res.json() : [];
           renderPanicAlerts(reports);
         } catch (err) {
@@ -372,10 +403,10 @@
             destination: document.getElementById("destination").value,
             batchSize: parseInt(document.getElementById("batchSize").value),
             description: document.getElementById("description").value,
-            timeSlots: dynamicTimeSlots.map(slot => ({
+            timeSlots: dynamicTimeSlots.map((slot) => ({
               start: slot.startTime,
-              end: slot.endTime
-            })), 
+              end: slot.endTime,
+            })),
           };
 
           try {
@@ -386,7 +417,7 @@
             });
             if (res.ok) {
               document.getElementById("quickRouteForm").reset();
-              dynamicTimeSlots = []; 
+              dynamicTimeSlots = [];
               updateSlotsUI();
               fetchRoutes();
             }
@@ -416,25 +447,29 @@
           return;
         }
         tbody.innerHTML = routes
-          .map(
-            (route) => {
-              let slotsHtml = `<span class="text-neutral-600 italic text-[11px]">No slots defined</span>`;
-              
-              if (route.timeSlots && route.timeSlots.length) {
-                slotsHtml = route.timeSlots.map(s => {
+          .map((route) => {
+            let slotsHtml = `<span class="text-neutral-600 italic text-[11px]">No slots defined</span>`;
+
+            if (route.timeSlots && route.timeSlots.length) {
+              slotsHtml = route.timeSlots
+                .map((s) => {
                   // Handle parsing display format if back-end responds with timestamp objects/strings
                   let displayTime = "Time block";
                   if (s.start) {
                     const d = new Date(s.start);
-                    displayTime = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                  } else if (typeof s === 'string') {
+                    displayTime = d.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                  } else if (typeof s === "string") {
                     displayTime = s;
                   }
                   return `<span class="inline-block bg-neutral-800 text-neutral-300 text-[10px] px-1.5 py-0.5 rounded border border-neutral-700 font-mono">${displayTime}</span>`;
-                }).join(" ");
-              }
+                })
+                .join(" ");
+            }
 
-              return `
+            return `
                 <tr class="border-b border-neutral-800/60 hover:bg-neutral-900/40 transition text-xs">
                   <td class="p-3">
                     <div class="font-semibold text-white">${route.start} ➔ ${route.destination}</div>
@@ -454,8 +489,7 @@
                   </td>
                 </tr>
               `;
-            }
-          )
+          })
           .join("");
       }
 
@@ -465,25 +499,181 @@
           container.innerHTML = `<div class="text-neutral-500 text-sm border border-neutral-800 rounded-xl p-6 bg-neutral-900/20 text-center">No emergency panic signals active.</div>`;
           return;
         }
+
         container.innerHTML = reports
-          .map(
-            (report) => `
-        <div class="emergency-flash border rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div class="space-y-1">
-            <span class="bg-red-600 text-white font-black px-1.5 py-0.5 rounded text-[10px]">EMERGENCY PANIC TRIGGERED</span>
-            <p class="text-sm text-neutral-200">User <span class="font-bold text-white">${report.reporterName || "Student"}</span> launched a distress request loop.</p>
+          .map((report) => {
+            // Unpack data from our new deeply populated backend structure
+            const reporter = report.userId || {};
+            const targetGroup = report.groupId || {};
+
+            // 🔥 SELF-HEALING ROUTE PICKER: Tries report path first, falls back to nested group path
+            const targetRoute = report.routeId || targetGroup.routeId || {};
+
+            const routeStart = targetRoute.start || "Unknown Origin";
+            const routeDest = targetRoute.destination || "Unknown Destination";
+            const routeDesc = targetRoute.description
+              ? `(${targetRoute.description})`
+              : "";
+
+            const callerName = reporter.name || "Unknown Student";
+            const callerUsn = reporter.usn || "N/A";
+            const callerPhone = reporter.phone || "No phone linked";
+            const callerEmail = reporter.email || "N/A";
+            const alarmText =
+              report.message || "Emergency alert loop triggered.";
+
+            const timestamp = report.createdAt
+              ? new Date(report.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })
+              : "Just Now";
+
+            // Extract and filter out the reporter from co-riders list
+            const groupMembersList = targetGroup.members || [];
+            const coRiders = groupMembersList.filter(
+              (m) => m._id !== reporter._id,
+            );
+
+            let coRidersHtml = `<p class="text-xs text-neutral-500 italic pl-1">No other passengers matched into this cluster pipeline.</p>`;
+
+            if (coRiders.length > 0) {
+              coRidersHtml = coRiders
+                .map(
+                  (rider) => `
+          <div class="bg-neutral-950/60 border border-neutral-800 rounded-xl p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
+            <div>
+              <div class="text-neutral-200 font-bold">${rider.name || "Student Passenger"}</div>
+              <div class="text-neutral-500 font-mono text-[11px]">${rider.usn || "USN N/A"} • ${rider.gender || "Other"}</div>
+            </div>
+            <div class="text-left sm:text-right font-mono">
+              <a href="tel:${rider.phone || ""}" class="text-purple-400 hover:underline block">${rider.phone || "No phone linked"}</a>
+              <span class="text-[10px] text-neutral-500 block truncate max-w-[180px]">${rider.email || ""}</span>
+            </div>
+            <div class="bg-neutral-900 px-2 py-1 rounded text-[10px] text-amber-400 border border-neutral-800 font-bold">
+              Rep: ${rider.reputationScore !== undefined ? rider.reputationScore : 100}
+            </div>
           </div>
+        `,
+                )
+                .join("");
+            }
+
+            return `
+        <div class="emergency-flash border-2 rounded-2xl p-6 flex flex-col gap-5 shadow-2xl transition-all duration-300 bg-neutral-900/40">
+          
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-red-500/20 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="bg-red-600 text-white font-black px-2 py-0.5 rounded text-[10px] tracking-wider animate-pulse">EMERGENCY PANIC CALL</span>
+              <span class="text-xs text-neutral-400 font-mono">Incident Dispatch Stamp: ${timestamp}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button 
+                onclick="dismissPanic('${report._id}')" 
+                class="bg-neutral-800 hover:bg-green-600 text-neutral-300 hover:text-white font-bold px-3 py-1 rounded border border-neutral-700 hover:border-green-500 text-xs transition"
+              >
+                ✓ Dismiss Alert
+              </button>
+            <div class="text-xs text-neutral-400">
+              Pipeline Cluster Ref: <span class="text-neutral-200 font-mono font-bold">${report._id}</span>
+            </div>
+          </div>
+
+          <div class="bg-purple-950/10 border border-purple-500/20 rounded-xl p-4 flex items-center gap-4">
+            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-base shrink-0">📍</div>
+            <div class="flex-1 min-w-0">
+              <span class="text-[10px] text-purple-400 uppercase font-black tracking-wider block">Target Transit Line</span>
+              <div class="text-white font-bold text-sm sm:text-base truncate">
+                ${routeStart} <span class="text-purple-500 mx-1">➔</span> ${routeDest}
+              </div>
+              <span class="text-xs text-neutral-500 block truncate mt-0.5">${routeDesc || "Standard Commute Node Sequence"}</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 text-sm">
+            
+            <div class="lg:col-span-5 space-y-3">
+              <span class="text-[10px] text-neutral-400 uppercase font-bold tracking-wider block">Other Passengers In Car Clusters</span>
+              <div class="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
+                ${coRidersHtml}
+              </div>
+            </div>
+
+            <div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4 border-l border-neutral-800/80 pl-2 lg:pl-5">
+              
+              <div class="space-y-3">
+                <div>
+                  <span class="text-[10px] text-red-400 font-bold uppercase tracking-wider block">Distress Reporter</span>
+                  <div class="text-white font-black text-lg mt-0.5">${callerName}</div>
+                  <div class="text-xs text-neutral-400 font-mono mt-0.5">USN: ${callerUsn}</div>
+                </div>
+                <div>
+                  <span class="text-[10px] text-neutral-500 uppercase font-bold tracking-wider block">Reporter Contact Coordinates</span>
+                  <a href="tel:${callerPhone}" class="text-red-400 font-bold hover:underline font-mono text-sm block mt-0.5">${callerPhone}</a>
+                  <span class="text-xs text-neutral-400 font-mono truncate block max-w-[240px]">${callerEmail}</span>
+                </div>
+              </div>
+
+              <div class="bg-black/50 border border-red-500/20 rounded-xl p-4 flex flex-col justify-between h-full min-h-[120px]">
+                <div>
+                  <span class="text-[10px] text-red-500 uppercase font-black tracking-wider block mb-1">Live Feed Context</span>
+                  <p class="text-neutral-200 italic text-xs leading-relaxed font-medium">"${alarmText}"</p>
+                </div>
+                <div class="border-t border-neutral-800/60 pt-2 mt-2 flex justify-between text-[10px] text-neutral-500 font-mono">
+                  <span>Group: ${targetGroup._id || "N/A"}</span>
+                  <span class="text-purple-400 font-bold">Rep: ${reporter.reputationScore || 100}</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
         </div>
-      `,
-          )
+      `;
+          })
           .join("");
       }
-
       function initializeDashboardLoops() {
         fetchRoutes();
         fetchPanicReports();
-        setInterval(fetchPanicReports, 4000); 
-        setInterval(fetchRoutes, 15000); 
+        setInterval(fetchPanicReports, 4000);
+        setInterval(fetchRoutes, 15000);
+      }
+
+      async function dismissPanic(reportId) {
+        // Enforce explicit admin confirmation before clearing the distress state
+        if (
+          !confirm(
+            "Are you sure you want to dismiss this emergency panic alert? Ensure the situation has been fully resolved.",
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const res = await fetch(
+            `${API_BASE}/admin/panic-reports/${reportId}`,
+            {
+              method: "DELETE",
+              headers: {
+                "X-Admin-Bypass": "true",
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
+          if (res.ok) {
+            // Instantly re-fetch reports to clear the card from the screen dynamically
+            fetchPanicReports();
+          } else {
+            const errData = await res.json();
+            alert(`Failed to dismiss report: ${errData.message}`);
+          }
+        } catch (err) {
+          console.error("Error dismissing panic report:", err);
+          alert("A network error occurred while trying to dismiss the report.");
+        }
       }
     </script>
   </body>

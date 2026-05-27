@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Image,
   ImageBackground,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -25,6 +26,7 @@ import type { TravelRoute } from "@/types/route";
 const BACKGROUND_IMAGE = require("@/assets/images/background.png");
 const ANIMATED_ICON = require("@/assets/images/icon.gif");
 const ANIMATED_BANNER = require("@/assets/animated/group.gif");
+const GROUP_IMG = require("@/assets/images/group.png");
 
 const AVATARS: Record<number, any> = {
   1: require("@/assets/images/avatars/avatar1.png"),
@@ -49,7 +51,7 @@ const getAvatarForId = (id: string = "") => {
 
 export default function GroupScreen() {
   const { token, user } = useAuth();
-  const [group, setGroup] = useState<Group | null>(null);
+  const [group, setGroup] = useState<any | null>(null);
   const [route, setRoute] = useState<TravelRoute | null>(null);
   const [reports, setReports] = useState<NoShowReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,7 @@ export default function GroupScreen() {
     null,
   );
   const [panicMessage, setPanicMessage] = useState("");
+  const [panicConfirm, setPanicConfirm] = useState(false);
 
   const loadGroup = useCallback(async () => {
     if (!token) return;
@@ -82,7 +85,7 @@ export default function GroupScreen() {
         throw new Error(errData.message || "Failed to load group");
       }
 
-      const data = (await response.json()) as Group | null;
+      const data = await response.json();
       setGroup(data);
 
       if (data?.routeId) {
@@ -129,46 +132,78 @@ export default function GroupScreen() {
   useFocusEffect(
     useCallback(() => {
       loadGroup();
+      setPanicConfirm(false);
     }, [loadGroup]),
   );
 
   const memberList = useMemo(() => {
-    return (group?.members ?? []).filter((member) => member._id !== user?._id);
+    return (group?.members ?? []).filter((member: any) => member._id !== user?._id);
   }, [group?.members, user?._id]);
 
   const reportWindow = useMemo(() => {
-    if (!group?.rideTime) {
+    if (!group || group.status !== "STARTED") {
       return {
         allowed: false,
-        label: "Report window opens after the ride starts.",
+        label: "No-Show reporting unlocks immediately after the ride starts.",
       };
     }
 
-    const rideTime = new Date(group.rideTime);
-    if (Number.isNaN(rideTime.getTime())) {
+    const startTimeStamp = group.updatedAt || group.rideTime;
+    if (!startTimeStamp) {
       return {
-        allowed: false,
-        label: "Report window opens after the ride starts.",
+        allowed: true,
+        label: "Ride is Active. Reporting window open (5-minute countdown active).",
       };
     }
 
-    const openTime = new Date(rideTime.getTime() + 5 * 60 * 1000);
-    const closeTime = new Date(rideTime.getTime() + 10 * 60 * 1000);
+    const startExecutionTime = new Date(startTimeStamp);
+    if (Number.isNaN(startExecutionTime.getTime())) {
+      return {
+        allowed: true,
+        label: "Ride is Active. Reporting window open (5-minute countdown active).",
+      };
+    }
+
+    const closeTime = new Date(startExecutionTime.getTime() + 5 * 60 * 1000);
     const now = new Date();
 
-    if (now >= openTime && now <= closeTime) {
-      return { allowed: true, label: "Report window is open." };
+    if (now <= closeTime) {
+      return { allowed: true, label: "Active Reporting Window Open (Closing soon)." };
     }
 
-    if (now < openTime) {
-      return {
-        allowed: false,
-        label: "Report window opens 5 minutes after the ride starts.",
-      };
-    }
+    return { allowed: false, label: "Report window has expired (5-minute tracking passed)." };
+  }, [group?.status, group?.updatedAt, group?.rideTime]);
 
-    return { allowed: false, label: "Report window has closed." };
-  }, [group?.rideTime]);
+  const handleStartRide = async () => {
+    if (!token || !group) return;
+    setActionLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${API_ENDPOINTS.groups.current.replace("/current", "")}/${group._id}/start`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to start ride");
+      }
+
+      await loadGroup();
+    } catch (err: any) {
+      setError(err.message || "Failed to start the ride.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleLeaveGroup = async () => {
     if (!token || !group) return;
@@ -260,6 +295,12 @@ export default function GroupScreen() {
 
   const handlePanic = async () => {
     if (!token || !group) return;
+    
+    if (!panicConfirm) {
+      setPanicConfirm(true);
+      return;
+    }
+
     setActionLoading(true);
     setError(null);
     try {
@@ -281,11 +322,19 @@ export default function GroupScreen() {
       }
 
       setPanicMessage("");
+      setPanicConfirm(false);
     } catch (err: any) {
       setError(err.message || "Failed to send panic alert.");
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const makeCall = (phone: string) => {
+    if (!phone) return;
+    Linking.openURL(`tel:${phone}`).catch(() => {
+      setError("Unable to open device system dialer application.");
+    });
   };
 
   if (loading) {
@@ -342,14 +391,14 @@ export default function GroupScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* HEADER HEADER */}
+          {/* HEADER CARD */}
           <View style={styles.glassHeaderCard}>
             <View style={styles.headerTopRow}>
               <View style={styles.titleWithGif}>
                 <View style={styles.headerGifBox}>
-                  <Image source={ANIMATED_ICON} style={styles.headerGif} />
+                  <Image source={GROUP_IMG} style={styles.headerGif} />
                 </View>
-                <Text style={styles.headerTitle}>Your Group Information</Text>
+                <Text style={styles.headerTitle}>Group Info</Text>
               </View>
               <View style={styles.statusBadge}>
                 <Text style={styles.statusText}>
@@ -387,41 +436,108 @@ export default function GroupScreen() {
             </ImageBackground>
           </View>
 
+          {/* MANUAL START RIDE CONTROLLER */}
+          {group.status === "FORMED" && (
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: "rgba(139, 92, 246, 0.25)",
+                  backgroundColor: "rgba(139, 92, 246, 0.04)",
+                },
+              ]}
+            >
+              <Text style={styles.sectionTitle}>Ride Execution Pipeline</Text>
+              <Text style={styles.cardDescription}>
+                Are all matched cluster members present at the target station?
+                Any single passenger can manually initialize the trip status
+                tracking layer.
+              </Text>
+              <Pressable
+                onPress={handleStartRide}
+                disabled={actionLoading}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: "#8B5CF6", marginTop: 4 },
+                ]}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="car-sport-outline"
+                      size={18}
+                      color="#FFFFFF"
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text style={styles.actionButtonText}>
+                      Start Ride for Group
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
+          )}
+
           {/* MEMBERS ROSTER CARD */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Members Roster</Text>
             <View style={styles.divider} />
-            {(group.members ?? []).map((member) => {
+            {(group.members ?? []).map((member: any) => {
               const isCurrentUser = member._id === user?._id;
               const avatarSource = getAvatarForId(member._id);
 
               return (
                 <View key={member._id} style={styles.memberRow}>
-                  <View style={styles.memberLeft}>
-                    <Image source={avatarSource} style={styles.avatarImage} />
-                    <View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
+                  <Image source={avatarSource} style={styles.avatarImage} />
+                  <View style={styles.memberInfoBlock}>
+                    <View style={styles.nameHeaderRow}>
+                      <Text style={styles.memberName} numberOfLines={1}>
+                        {member.name ?? "Student"}
+                      </Text>
+                      {isCurrentUser && (
+                        <View style={styles.youBadge}>
+                          <Text style={styles.youText}>You</Text>
+                        </View>
+                      )}
+                    </View>
+                    
+                    <Text style={styles.memberMeta}>
+                      {member.usn || "Member Verified"}
+                    </Text>
+
+                    {/* INTERACTIVE PHONE INTERFACE LINK */}
+                    {member.phone ? (
+                      <Pressable 
+                        onPress={() => makeCall(member.phone)}
+                        style={({ pressed }) => [
+                          styles.communicationRow,
+                          pressed && { opacity: 0.6 }
+                        ]}
                       >
-                        <Text style={styles.memberName}>
-                          {member.name ?? "Student"}
+                        <Ionicons name="call-outline" size={13} color="#a78bfa" />
+                        <Text style={styles.memberPhone} numberOfLines={1}>
+                          {member.phone}
                         </Text>
-                        {isCurrentUser && (
-                          <View style={styles.youBadge}>
-                            <Text style={styles.youText}>You</Text>
-                          </View>
-                        )}
+                      </Pressable>
+                    ) : (
+                      <View style={styles.communicationRow}>
+                        <Ionicons name="call-outline" size={13} color="#52525B" />
+                        <Text style={[styles.memberPhone, { color: "#52525B" }]} numberOfLines={1}>
+                          No registered phone
+                        </Text>
                       </View>
-                      <Text style={styles.memberMeta}>
-                        {member.usn || "Member Verified"}
+                    )}
+
+                    {/* EMAIL RE-ROUTED DIRECTLY BELOW PHONE UNDER SINGLE AUTO LAYOUT COLUMN */}
+                    <View style={styles.communicationRow}>
+                      <Ionicons name="mail-outline" size={13} color="#A1A1AA" />
+                      <Text style={styles.memberEmail} numberOfLines={1}>
+                        {member.email ?? "N/A"}
                       </Text>
                     </View>
                   </View>
-                  <Text style={styles.memberEmail}>{member.email ?? ""}</Text>
                 </View>
               );
             })}
@@ -432,8 +548,7 @@ export default function GroupScreen() {
                 color="#71717A"
               />
               <Text style={styles.hintText}>
-                Contact credentials become visible upon group structure
-                settlement.
+                Contact credentials become visible upon group structure settlement.
               </Text>
             </View>
           </View>
@@ -443,11 +558,10 @@ export default function GroupScreen() {
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Swap Parameters</Text>
               <Text style={styles.cardDescription}>
-                Select a specific target node to minimize cluster matching
-                factors in subsequent grouping routines.
+                Select a specific target node to minimize cluster matching factors in subsequent grouping routines.
               </Text>
               <View style={styles.chipRow}>
-                {memberList.map((member) => (
+                {memberList.map((member: any) => (
                   <Pressable
                     key={member._id}
                     onPress={() => setSelectedSwapUserId(member._id)}
@@ -459,8 +573,7 @@ export default function GroupScreen() {
                     <Text
                       style={[
                         styles.chipText,
-                        selectedSwapUserId === member._id &&
-                          styles.chipTextActive,
+                        selectedSwapUserId === member._id && styles.chipTextActive,
                       ]}
                     >
                       {member.name ?? member.usn ?? "Student"}
@@ -496,11 +609,7 @@ export default function GroupScreen() {
               <Text style={styles.sectionTitle}>No-Show Protocol</Text>
               <View style={styles.windowStatusRow}>
                 <Ionicons
-                  name={
-                    reportWindow.allowed
-                      ? "checkmark-circle-outline"
-                      : "alert-circle-outline"
-                  }
+                  name={reportWindow.allowed ? "checkmark-circle-outline" : "alert-circle-outline"}
                   size={14}
                   color={reportWindow.allowed ? "#4ADE80" : "#94A3B8"}
                 />
@@ -508,21 +617,19 @@ export default function GroupScreen() {
               </View>
 
               <View style={styles.chipRow}>
-                {memberList.map((member) => (
+                {memberList.map((member: any) => (
                   <Pressable
                     key={member._id}
                     onPress={() => setSelectedReportUserId(member._id)}
                     style={[
                       styles.chip,
-                      selectedReportUserId === member._id &&
-                        styles.chipActiveWarning,
+                      selectedReportUserId === member._id && styles.chipActiveWarning,
                     ]}
                   >
                     <Text
                       style={[
                         styles.chipText,
-                        selectedReportUserId === member._id &&
-                          styles.chipTextActiveWarning,
+                        selectedReportUserId === member._id && styles.chipTextActiveWarning,
                       ]}
                     >
                       {member.name ?? member.usn ?? "Student"}
@@ -541,17 +648,11 @@ export default function GroupScreen() {
 
               <Pressable
                 onPress={handleReport}
-                disabled={
-                  !reportWindow.allowed ||
-                  !selectedReportUserId ||
-                  actionLoading
-                }
+                disabled={!reportWindow.allowed || !selectedReportUserId || actionLoading}
                 style={[
                   styles.actionButton,
                   styles.warningButton,
-                  (!reportWindow.allowed || !selectedReportUserId) && {
-                    opacity: 0.5,
-                  },
+                  (!reportWindow.allowed || !selectedReportUserId) && { opacity: 0.5 },
                 ]}
               >
                 <Ionicons
@@ -577,47 +678,54 @@ export default function GroupScreen() {
 
           {/* EMERGENCY SYSTEM OVERLAY */}
           {group.status === "STARTED" && (
-            <View
-              style={[styles.card, { borderColor: "rgba(239, 68, 68, 0.25)" }]}
-            >
-              <Text style={[styles.sectionTitle, { color: "#F87171" }]}>
-                Safety Intervention
-              </Text>
+            <View style={[styles.card, { borderColor: "rgba(239, 68, 68, 0.25)" }]}>
+              <Text style={[styles.sectionTitle, { color: "#F87171" }]}>Safety Intervention</Text>
               <Text style={styles.cardDescription}>
-                Dispatch tracking alarms instantly to platform dispatch admins
-                if unexpected trajectory shifts occur.
+                Dispatch tracking alarms instantly to platform dispatch admins if unexpected trajectory shifts occur.
               </Text>
               <TextInput
                 placeholder="Optional spatial location or status context..."
                 placeholderTextColor="#52525B"
                 value={panicMessage}
                 onChangeText={setPanicMessage}
-                style={[
-                  styles.input,
-                  { borderColor: "rgba(239, 68, 68, 0.2)" },
-                ]}
+                style={[styles.input, { borderColor: "rgba(239, 68, 68, 0.2)" }]}
               />
+              
               <Pressable
                 onPress={handlePanic}
                 disabled={actionLoading}
-                style={[styles.actionButton, styles.dangerButton]}
+                style={[
+                  styles.actionButton,
+                  styles.dangerButton,
+                  panicConfirm && { backgroundColor: "#DC2626" }
+                ]}
               >
                 <Ionicons
-                  name="skull-outline"
+                  name={panicConfirm ? "alert-circle" : "skull-outline"}
                   size={16}
                   color="#FFF"
                   style={{ marginRight: 6 }}
                 />
                 <Text style={styles.actionButtonText}>
-                  Trigger System Panic Alert
+                  {panicConfirm ? "TAP AGAIN TO CONFIRM EMERGENCY!" : "Trigger System Panic Alert"}
                 </Text>
               </Pressable>
+              
+              {panicConfirm && (
+                <Pressable 
+                  onPress={() => setPanicConfirm(false)}
+                  style={{ padding: 4, alignItems: "center" }}
+                >
+                  <Text style={{ color: "#A1A1AA", fontSize: 12, textDecorationLine: "underline" }}>
+                    Cancel Request
+                  </Text>
+                </Pressable>
+              )}
             </View>
           )}
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          {/* DISENGAGE FOOTER SEPARATION ACTION */}
           <Pressable
             onPress={handleLeaveGroup}
             disabled={actionLoading}
@@ -654,7 +762,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
-    paddingBottom: 120, // Increased to 120 to ensure 100px clear gap
+    paddingBottom: 120, 
   },
   glassHeaderCard: {
     backgroundColor: "rgba(23, 23, 23, 0.45)",
@@ -680,11 +788,10 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: "#171719",
+    backgroundColor: "#17171900",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   headerGif: {
     width: "100%",
@@ -743,28 +850,35 @@ const styles = StyleSheet.create({
   },
   memberRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 4,
-    gap: 12,
-  },
-  memberLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    alignItems: "flex-start",
+    paddingVertical: 8,
+    gap: 14,
+    width: "100%",
   },
   avatarImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: "#171717",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
+    marginTop: 2,
+  },
+  memberInfoBlock: {
+    flex: 1,
+    flexDirection: "column",
+    gap: 3,
+  },
+  nameHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   memberName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
     color: "#FFFFFF",
+    maxWidth: "80%",
   },
   youBadge: {
     backgroundColor: "rgba(255, 255, 255, 0.08)",
@@ -780,12 +894,26 @@ const styles = StyleSheet.create({
   memberMeta: {
     fontSize: 12,
     color: "#71717A",
-    marginTop: 2,
+  },
+  communicationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 1,
+    width: "100%",
+  },
+  memberPhone: {
+    fontSize: 13,
+    color: "#a78bfa", 
+    fontWeight: "600",
+    letterSpacing: 0.2,
+    flex: 1,
   },
   memberEmail: {
     fontSize: 12,
     color: "#A1A1AA",
-    fontWeight: "500",
+    fontWeight: "400",
+    flex: 1,
   },
   hintContainer: {
     flexDirection: "row",

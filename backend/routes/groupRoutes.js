@@ -10,4 +10,6 @@ router.post("/:groupId/swap", auth, groupController.swap);
 router.post("/:groupId/report", auth, groupController.reportNoShow);
 router.get("/:groupId/report-status", auth, groupController.getReportStatus);
 
+router.patch("/:groupId/start", auth, groupController.startGroupRide);
+
 module.exports = router;

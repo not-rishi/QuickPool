@@ -12,5 +12,8 @@ router.patch(
   auth,
   adminController.updateReputation,
 );
+// Add this to your admin routes file
+router.delete("/panic-reports/:reportId", auth, adminController.dismissPanicReport);
+
 
 module.exports = router;
