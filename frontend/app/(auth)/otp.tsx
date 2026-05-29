@@ -12,8 +12,6 @@ import {
   Platform,
 } from "react-native";
 import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-
 import { AuthInput } from "@/components/ui/auth-input";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -128,8 +126,8 @@ export default function OtpScreen() {
       <View style={styles.container}>
         {/* Background Image Asset synced with Login UI hierarchy */}
         <ImageBackground
-          source={require("@/assets/images/background.png")}
-          style={StyleSheet.absoluteFillObject}
+          source={require("../../assets/images/background.png")}
+          style={StyleSheet.absoluteFill}
           resizeMode="cover"
         />
 

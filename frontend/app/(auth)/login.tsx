@@ -71,8 +71,8 @@ export default function LoginScreen() {
     <ScreenContainer scroll centered>
       <View style={styles.container}>
         <ImageBackground
-          source={require("@/assets/images/background.png")}
-          style={StyleSheet.absoluteFillObject}
+          source={require("../../assets/images/background.png")}
+          style={StyleSheet.absoluteFill}
           resizeMode="cover"
         />
 

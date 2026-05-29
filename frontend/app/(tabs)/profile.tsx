@@ -68,11 +68,11 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={BACKGROUND_IMAGE}
-        style={StyleSheet.absoluteFillObject}
-        resizeMode="cover"
-      />
+       <ImageBackground
+          source={require("../../assets/images/background.png")}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
       <View style={styles.dimOverlay} />
 
       <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#050505",
   },
   dimOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(5, 5, 5, 0.88)",
   },
   safe: {

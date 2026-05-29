@@ -364,7 +364,7 @@ export default function GroupScreen() {
       <View style={styles.container}>
         <ImageBackground
           source={BACKGROUND_IMAGE}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           resizeMode="cover"
         />
         <View style={styles.dimOverlay} />
@@ -389,7 +389,7 @@ export default function GroupScreen() {
     <View style={styles.container}>
       <ImageBackground
         source={BACKGROUND_IMAGE}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         resizeMode="cover"
       />
       <View style={styles.dimOverlay} />
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#050505",
   },
   dimOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(5, 5, 5, 0.88)",
   },
   safe: {

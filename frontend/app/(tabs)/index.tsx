@@ -111,9 +111,6 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
-    // console.log("🔄 [HomeScreen:useEffect] Token dependency changed:", {
-    //   tokenExists: !!token,
-    // });
     if (token) {
       loadRoutes();
     } else {
@@ -143,6 +140,7 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <View style={styles.headerBlock}>
+
       {/* NATIVE PROFILE BLOCK (No upper thick bar) */}
       <View style={styles.profileRow}>
         <View style={styles.profileLeft}>
