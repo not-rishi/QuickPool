@@ -124,6 +124,263 @@ Monitor Routes, get panic alerts and act directly!
 
 ---
 
+## Repository Structure 
+
+```
+QuickPool
+│ 
+├── backend
+│   ├── config
+│   │   └── db.js
+│   ├── controllers
+│   │   ├── adminController.js
+│   │   ├── authController.js
+│   │   ├── emergencyController.js
+│   │   ├── groupController.js
+│   │   ├── routeController.js
+│   │   └── userController.js
+│   ├── middleware
+│   │   ├── authMiddleware.js
+│   │   └── errorMiddleware.js
+│   ├── models
+│   │   ├── Group.js
+│   │   ├── NoShowReport.js
+│   │   ├── OTP.js
+│   │   ├── PanicReport.js
+│   │   ├── Queue.js
+│   │   ├── RideHistory.js
+│   │   ├── Route.js
+│   │   ├── Swap.js
+│   │   └── User.js
+│   ├── routes
+│   │   ├── adminRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── emergencyRoutes.js
+│   │   ├── groupRoutes.js
+│   │   ├── routeRoutes.js
+│   │   └── userRoutes.js
+│   ├── scripts
+│   │   └── fetchOtp.js
+│   ├── services
+│   │   ├── emailService.js
+│   │   └── matchingService.js
+│   ├── templates
+│   │   └── mailTemplate.js
+│   ├── utils
+│   │   ├── generateOTP.js
+│   │   └── generateToken.js
+│   ├── admin.html
+│   ├── package-lock.json
+│   ├── package.json
+│   └── server.js
+├── docs
+│   ├── screenshots
+│   │   ├── admin_panel.png
+│   │   ├── admin-panel-alert.gif
+│   │   ├── email.png
+│   │   ├── group-bottom.png
+│   │   ├── group.png
+│   │   ├── history.jpg
+│   │   ├── home.jpg
+│   │   ├── otp.jpg
+│   │   ├── profile.jpg
+│   │   ├── route_bottom.jpg
+│   │   ├── route_top.jpg
+│   │   └── usn.jpg
+│   ├── api-contract.md
+│   ├── architecture-diagram.png
+│   └── architecture.md
+├── frontend
+│   ├── android
+│   │   ├── app
+│   │   │   ├── src
+│   │   │   │   ├── debug
+│   │   │   │   │   └── AndroidManifest.xml
+│   │   │   │   ├── debugOptimized
+│   │   │   │   │   └── AndroidManifest.xml
+│   │   │   │   └── main
+│   │   │   │       ├── java
+│   │   │   │       │   └── com
+│   │   │   │       │       └── anonymous
+│   │   │   │       │           └── QuickPool
+│   │   │   │       │               ├── MainActivity.kt
+│   │   │   │       │               └── MainApplication.kt
+│   │   │   │       ├── res
+│   │   │   │       │   ├── drawable
+│   │   │   │       │   │   ├── ic_launcher_background.xml
+│   │   │   │       │   │   └── rn_edit_text_material.xml
+│   │   │   │       │   ├── drawable-hdpi
+│   │   │   │       │   │   └── splashscreen_logo.png
+│   │   │   │       │   ├── drawable-mdpi
+│   │   │   │       │   │   └── splashscreen_logo.png
+│   │   │   │       │   ├── drawable-xhdpi
+│   │   │   │       │   │   └── splashscreen_logo.png
+│   │   │   │       │   ├── drawable-xxhdpi
+│   │   │   │       │   │   └── splashscreen_logo.png
+│   │   │   │       │   ├── drawable-xxxhdpi
+│   │   │   │       │   │   └── splashscreen_logo.png
+│   │   │   │       │   ├── mipmap-anydpi-v26
+│   │   │   │       │   │   ├── ic_launcher_round.xml
+│   │   │   │       │   │   └── ic_launcher.xml
+│   │   │   │       │   ├── mipmap-hdpi
+│   │   │   │       │   │   ├── ic_launcher_background.webp
+│   │   │   │       │   │   ├── ic_launcher_foreground.webp
+│   │   │   │       │   │   ├── ic_launcher_monochrome.webp
+│   │   │   │       │   │   ├── ic_launcher_round.webp
+│   │   │   │       │   │   └── ic_launcher.webp
+│   │   │   │       │   ├── mipmap-mdpi
+│   │   │   │       │   │   ├── ic_launcher_background.webp
+│   │   │   │       │   │   ├── ic_launcher_foreground.webp
+│   │   │   │       │   │   ├── ic_launcher_monochrome.webp
+│   │   │   │       │   │   ├── ic_launcher_round.webp
+│   │   │   │       │   │   └── ic_launcher.webp
+│   │   │   │       │   ├── mipmap-xhdpi
+│   │   │   │       │   │   ├── ic_launcher_background.webp
+│   │   │   │       │   │   ├── ic_launcher_foreground.webp
+│   │   │   │       │   │   ├── ic_launcher_monochrome.webp
+│   │   │   │       │   │   ├── ic_launcher_round.webp
+│   │   │   │       │   │   └── ic_launcher.webp
+│   │   │   │       │   ├── mipmap-xxhdpi
+│   │   │   │       │   │   ├── ic_launcher_background.webp
+│   │   │   │       │   │   ├── ic_launcher_foreground.webp
+│   │   │   │       │   │   ├── ic_launcher_monochrome.webp
+│   │   │   │       │   │   ├── ic_launcher_round.webp
+│   │   │   │       │   │   └── ic_launcher.webp
+│   │   │   │       │   ├── mipmap-xxxhdpi
+│   │   │   │       │   │   ├── ic_launcher_background.webp
+│   │   │   │       │   │   ├── ic_launcher_foreground.webp
+│   │   │   │       │   │   ├── ic_launcher_monochrome.webp
+│   │   │   │       │   │   ├── ic_launcher_round.webp
+│   │   │   │       │   │   └── ic_launcher.webp
+│   │   │   │       │   ├── values
+│   │   │   │       │   │   ├── colors.xml
+│   │   │   │       │   │   ├── strings.xml
+│   │   │   │       │   │   └── styles.xml
+│   │   │   │       │   └── values-night
+│   │   │   │       │       └── colors.xml
+│   │   │   │       └── AndroidManifest.xml
+│   │   │   ├── build.gradle
+│   │   │   └── proguard-rules.pro
+│   │   ├── gradle
+│   │   │   └── wrapper
+│   │   │       ├── gradle-wrapper.jar
+│   │   │       └── gradle-wrapper.properties
+│   │   ├── .gitignore
+│   │   ├── build.gradle
+│   │   ├── gradle.properties
+│   │   ├── gradlew
+│   │   ├── gradlew.bat
+│   │   └── settings.gradle
+│   ├── app
+│   │   ├── (auth)
+│   │   │   ├── _layout.tsx
+│   │   │   ├── login.tsx
+│   │   │   └── otp.tsx
+│   │   ├── (tabs)
+│   │   │   ├── _layout.tsx
+│   │   │   ├── group.tsx
+│   │   │   ├── history.tsx
+│   │   │   ├── index.tsx
+│   │   │   └── profile.tsx
+│   │   ├── routes
+│   │   │   └── [routeId].tsx
+│   │   ├── _layout.tsx
+│   │   ├── create-route.tsx
+│   │   ├── index.tsx
+│   │   └── modal.tsx
+│   ├── assets
+│   │   ├── animated
+│   │   │   ├── group.gif
+│   │   │   ├── group.mp4
+│   │   │   ├── history.gif
+│   │   │   ├── map_draw.gif
+│   │   │   ├── profile.gif
+│   │   │   ├── travel.gif
+│   │   │   └── travel.mp4
+│   │   └── images
+│   │       ├── avatars
+│   │       │   ├── avatar1.png
+│   │       │   ├── avatar10.png
+│   │       │   ├── avatar2.png
+│   │       │   ├── avatar3.png
+│   │       │   ├── avatar4.png
+│   │       │   ├── avatar5.png
+│   │       │   ├── avatar6.png
+│   │       │   ├── avatar7.png
+│   │       │   ├── avatar8.png
+│   │       │   └── avatar9.png
+│   │       ├── android-icon-background.png
+│   │       ├── android-icon-foreground.png
+│   │       ├── android-icon-monochrome.png
+│   │       ├── background.png
+│   │       ├── favicon.png
+│   │       ├── group.png
+│   │       ├── icon_b.gif
+│   │       ├── icon_b.png
+│   │       ├── icon_w.gif
+│   │       ├── icon_w.png
+│   │       ├── icon.gif
+│   │       ├── icon.png
+│   │       ├── map-placeholder.png
+│   │       └── splash-icon.png
+│   ├── components
+│   │   ├── branding
+│   │   │   └── quickpool-logo.tsx
+│   │   ├── routes
+│   │   │   └── route-card.tsx
+│   │   ├── ui
+│   │   │   ├── auth-input.tsx
+│   │   │   ├── collapsible.tsx
+│   │   │   ├── icon-symbol.ios.tsx
+│   │   │   ├── icon-symbol.tsx
+│   │   │   ├── primary-button.tsx
+│   │   │   └── screen-container.tsx
+│   │   ├── external-link.tsx
+│   │   ├── haptic-tab.tsx
+│   │   ├── hello-wave.tsx
+│   │   ├── parallax-scroll-view.tsx
+│   │   ├── themed-text.tsx
+│   │   └── themed-view.tsx
+│   ├── config
+│   │   └── api.ts
+│   ├── constants
+│   │   ├── api-endpoint.ts
+│   │   ├── brand.ts
+│   │   ├── theme.ts
+│   │   └── validation.ts
+│   ├── context
+│   │   └── auth-context.tsx
+│   ├── hooks
+│   │   ├── use-color-scheme.ts
+│   │   ├── use-color-scheme.web.ts
+│   │   └── use-theme-color.ts
+│   ├── scripts
+│   │   └── reset-project.js
+│   ├── services
+│   │   ├── api.ts
+│   │   ├── auth.ts
+│   │   └── routes.ts
+│   ├── types
+│   │   ├── group.ts
+│   │   ├── history.ts
+│   │   ├── queue.ts
+│   │   ├── route.ts
+│   │   └── user.ts
+│   ├── utils
+│   │   └── storage.ts
+│   ├── .gitignore
+│   ├── app.json
+│   ├── eslint.config.js
+│   ├── package-lock.json
+│   ├── package.json
+│   └── tsconfig.json
+├── .gitignore
+├── README.md
+└── start.bat
+```
+
+---
+
 ## Overview
 
 QuickPool is a full-stack ride pooling application that automatically matches users travelling on similar routes and forms optimized ride groups.
