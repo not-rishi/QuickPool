@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorMiddleware");
+const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -42,6 +43,10 @@ try {
   console.error("Failed to schedule cron job:", e.message);
 }
 
+app.get("/admin.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
 console.log(`
 MdmmmmmmmmmmmmmmmmmmmmmpMWWWWWWMMWMWWWWW
 or                     toWWWWWWWWWWWWWWW
@@ -65,4 +70,4 @@ MMWWMMWWWMWWWMWMWWWWWWWm.  ,Cr        ja
 MMWMWMWWMWWWMWWMWWWWWWWm.  ,Cr        ja
 MMMWMWWMMWWWWWWWMWWMWWWm.   i,        ja
 MMMMMMMMMMMMMMMMMMMMMMMhmQQQQQQQQQQQQQpM
-`)
+`);
