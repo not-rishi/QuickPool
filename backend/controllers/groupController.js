@@ -30,16 +30,16 @@ exports.getGroupById = async (req, res, next) => {
 };
 
 exports.startGroupRide = async (req, res, next) => {
+  console.log("START RIDE HIT");
+  console.log("BODY:", req.body);
   try {
     const { groupId } = req.params;
 
-    
     const group = await Group.findById(groupId);
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    
     const isMember = group.members.some((m) => m.toString() === req.userId);
     if (!isMember) {
       return res
@@ -47,7 +47,6 @@ exports.startGroupRide = async (req, res, next) => {
         .json({ message: "Forbidden: You are not a member of this group" });
     }
 
-    
     if (group.status === "STARTED") {
       return res
         .status(400)
@@ -59,7 +58,6 @@ exports.startGroupRide = async (req, res, next) => {
         .json({ message: "This ride is already completed" });
     }
 
-    
     const Route = require("../models/Route");
     const route = await Route.findById(group.routeId);
     if (!route) {
@@ -68,7 +66,6 @@ exports.startGroupRide = async (req, res, next) => {
         .json({ message: "Associated travel route details not found" });
     }
 
-    
     const activeSlot = route.timeSlots.find(
       (slot) => slot._id.toString() === group.slotId.toString(),
     );
@@ -79,7 +76,6 @@ exports.startGroupRide = async (req, res, next) => {
         .json({ message: "Invalid time slot configuration" });
     }
 
-    
     const now = Date.now();
     const slotStart = new Date(activeSlot.startTime).getTime();
     const slotEnd = new Date(activeSlot.endTime).getTime();
@@ -97,9 +93,8 @@ exports.startGroupRide = async (req, res, next) => {
       });
     }
 
-    
     group.status = "STARTED";
-    group.rideTime = new Date(); 
+    group.rideTime = new Date();
     await group.save();
 
     res.json({
@@ -122,15 +117,12 @@ exports.leaveGroup = async (req, res, next) => {
         message: "Group not found",
       });
 
-    
     const remainingMembers = group.members.filter(
       (m) => m.toString() !== req.userId,
     );
 
-    
     await Group.findByIdAndDelete(groupId);
 
-    
     if (remainingMembers.length > 0) {
       const queueEntries = remainingMembers.map((memberId) => ({
         routeId: group.routeId,
@@ -141,7 +133,6 @@ exports.leaveGroup = async (req, res, next) => {
 
       await Queue.insertMany(queueEntries);
 
-      
       await formGroupsForRoute(group.routeId, group.slotId);
     }
 
@@ -178,20 +169,16 @@ exports.swap = async (req, res, next) => {
       avoidUserId,
     });
 
-    
     group.members = group.members.filter((m) => m.toString() !== req.userId);
     await group.save();
 
-    
     await Queue.create({
       routeId: group.routeId,
       slotId: group.slotId,
       userId: req.userId,
-      femaleOnly: false, 
+      femaleOnly: false,
     });
 
-    
-    
     await formGroupsForRoute(group.routeId, group.slotId);
 
     res.json(swap);
@@ -207,7 +194,6 @@ exports.reportNoShow = async (req, res, next) => {
     if (!reportedUserId)
       return res.status(400).json({ message: "reportedUserId required" });
 
-    
     const existing = await NoShowReport.findOne({
       reporterId: req.userId,
       reportedUserId,
@@ -225,7 +211,6 @@ exports.reportNoShow = async (req, res, next) => {
       reason,
     });
 
-    
     const User = require("../models/User");
     const reported = await User.findById(reportedUserId);
     if (reported) {

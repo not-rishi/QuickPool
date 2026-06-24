@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "@/constants/api-endpoint";
 
 export { API_BASE_URL };
+console.log(API_BASE_URL);
 
 export const API_ENDPOINTS = {
   auth: {
